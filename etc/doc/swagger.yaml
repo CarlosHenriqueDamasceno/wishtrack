@@ -1,0 +1,59 @@
+basePath: /api/v1
+definitions:
+  user.RegisterInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  user.RegisterOutput:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8080
+info:
+  contact:
+    email: carlos@wishtrack.io
+    name: API Support
+  description: A app to manage all the things you want see or have saw.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: WishTrack API
+  version: "1.0"
+paths:
+  /register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User information for registration
+        in: body
+        name: registerRequest
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegisterInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.RegisterOutput'
+      summary: Create's a new user
+      tags:
+      - user
+swagger: "2.0"

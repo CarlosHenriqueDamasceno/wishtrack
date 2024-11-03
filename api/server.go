@@ -3,20 +3,22 @@ package api
 import (
 	"net/http"
 
-	"github.com/CarlosHenriqueDamasceno/wishtrack/register"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/user"
 )
 
 type ApiServer struct {
-	router *http.ServeMux
+	router         *http.ServeMux
+	userRepository user.Repository
 }
 
-// Creates and boots a new ApiServer.
+// Creates and starts a new ApiServer.
 // This method registers all handlers in the ApiServer
-func NewApiServer(router *http.ServeMux) *ApiServer {
+func NewApiServer(router *http.ServeMux, userRepository user.Repository) *ApiServer {
 	s := &ApiServer{
-		router: router,
+		router:         router,
+		userRepository: userRepository,
 	}
-	s.start()
+	s.setupRoutes()
 	return s
 }
 
@@ -24,7 +26,6 @@ func (s *ApiServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	s.router.ServeHTTP(w, req)
 }
 
-func (s *ApiServer) start() error {
-	s.router.Handle("/api/v1/register", &register.RegisterHandler{})
-	return nil
+func (s *ApiServer) setupRoutes() {
+	s.router.Handle("/api/v1/register", user.NewRegisterHandler(s.userRepository))
 }
