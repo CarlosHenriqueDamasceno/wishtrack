@@ -46,6 +46,14 @@ func outputFromUser(user *User) *RegisterOutput {
 	}
 }
 
+// Register godoc
+// @Summary      Create's a new user
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param registerRequest body user.RegisterInput true "User information for registration"
+// @Success      201  {object}   user.RegisterOutput
+// @Router       /register [post]
 func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	input, err := InputFromRequest(req)
 	if err != nil {

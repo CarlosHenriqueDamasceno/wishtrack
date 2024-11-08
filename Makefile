@@ -4,3 +4,5 @@ run: build
 	./bin/api
 tests:
 	go test ./test/...
+doc:
+	swag init --output etc/doc

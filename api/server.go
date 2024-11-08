@@ -3,7 +3,9 @@ package api
 import (
 	"net/http"
 
+	_ "github.com/CarlosHenriqueDamasceno/wishtrack/etc/doc"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/user"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type ApiServer struct {
@@ -27,5 +29,6 @@ func (s *ApiServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *ApiServer) setupRoutes() {
-	s.router.Handle("/api/v1/register", user.NewRegisterHandler(s.userRepository))
+	s.router.Handle("/swagger/*", httpSwagger.WrapHandler)
+	s.router.Handle("POST /api/v1/register", user.NewRegisterHandler(s.userRepository))
 }
