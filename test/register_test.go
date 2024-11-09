@@ -18,26 +18,32 @@ import (
 
 type RegisterTestSuite struct {
 	suite.Suite
+	conn           *sql.DB
 	userRepository user.Repository
 	server         *api.ApiServer
 }
 
 func (suite *RegisterTestSuite) SetupTest() {
-	connection, err := sql.Open("sqlite3", ":memory:")
+	conn, err := sql.Open("sqlite3", ":memory:")
 	suite.Assert().Nil(err, "Fail to connect to database")
 
-	connection.Exec("CREATE TABLE users (id varchar(255), name varchar(255), email varchar(255), password varchar(255), created_at timestamp)")
+	suite.conn = conn
+	suite.conn.Exec(
+		`CREATE TABLE users (
+			id varchar(255),
+			name varchar(255),
+			email varchar(255),
+			password varchar(255),
+			created_at timestamp
+		)`,
+	)
 
-	suite.userRepository = user.NewDatabaseRepository(connection)
+	suite.userRepository = user.NewDatabaseRepository(suite.conn)
 	suite.server = api.NewApiServer(http.NewServeMux(), suite.userRepository)
 }
 
 func (suite *RegisterTestSuite) TestShouldRegister() {
-	input := struct {
-		Name     string
-		Email    string
-		Password string
-	}{
+	input := user.RegisterInput{
 		Name:     "Carlos",
 		Email:    "carlos@wishtrack.com",
 		Password: "password",
@@ -73,6 +79,39 @@ func (suite *RegisterTestSuite) TestShouldRegister() {
 	suite.Assert().Equal(input.Name, savedUser.Name)
 	suite.Assert().Equal(input.Email, savedUser.Email)
 	suite.Assert().True(savedUser.VerifyPassword(input.Password))
+}
+
+func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
+	input := user.RegisterInput{
+		Name:     "Carlos",
+		Email:    "carlos",
+		Password: "senha",
+	}
+
+	body, err := json.Marshal(input)
+	suite.Assert().Nil(err, "Body should be serialized")
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
+
+	suite.server.ServeHTTP(recorder, req)
+	suite.Assert().Equal(http.StatusUnprocessableEntity, recorder.Result().StatusCode, "Response status code should be 422 unprocessable entity")
+
+	resp := &struct {
+		Errors map[string][]string `json:"errors"`
+	}{}
+
+	err = json.NewDecoder(recorder.Result().Body).Decode(resp)
+	suite.Assert().Nil(err, "fail to parse response")
+
+	expectedErrors := map[string][]string{"email": {"field \"email\" must be a valid e-mail address"}}
+	suite.Assert().Equal(expectedErrors, resp.Errors)
+
+	res, err := suite.conn.Exec("select count(id) from users where email = ?", input.Email)
+	suite.Assert().NoError(err, "fail to fetch database")
+	rows, err := res.RowsAffected()
+	suite.Assert().NoError(err, "fail to fetch rows")
+	suite.Assert().Equal(int64(0), rows)
 }
 
 func TestRegisterTestSuite(t *testing.T) {

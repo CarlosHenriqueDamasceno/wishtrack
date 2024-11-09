@@ -51,6 +51,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/user.RegisterOutput"
                         }
+                    },
+                    "422": {
+                        "description": "Validation Errors",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }

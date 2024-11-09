@@ -53,6 +53,14 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/user.RegisterOutput'
+        "422":
+          description: Validation Errors
+          schema:
+            additionalProperties:
+              items:
+                type: string
+              type: array
+            type: object
       summary: Create's a new user
       tags:
       - user

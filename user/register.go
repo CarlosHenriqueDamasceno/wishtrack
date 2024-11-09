@@ -1,10 +1,11 @@
 package user
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
+	"github.com/CarlosHenriqueDamasceno/wishtrack/api/utils"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/validation"
 	"github.com/google/uuid"
 )
 
@@ -18,16 +19,47 @@ func NewRegisterHandler(repository Repository) *RegisterHandler {
 	}
 }
 
-type RegisterInput struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+// Register godoc
+// @Summary      Creates a new user
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        registerRequest body user.RegisterInput true "User information for registration"
+// @Success      201  {object}   user.RegisterOutput
+// @Failure      422  {object}   map[string][]string "Validation Errors"
+// @Router       /register [post]
+func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	input, err := utils.ReceiveJSON[*RegisterInput](req)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	out, err := h.register(input)
+	if err != nil {
+		utils.RespondJSON(err, http.StatusUnprocessableEntity, w)
+		return
+	}
+
+	utils.RespondJSON(out, http.StatusCreated, w)
 }
 
-func InputFromRequest(req *http.Request) (*RegisterInput, error) {
-	input := &RegisterInput{}
-	err := json.NewDecoder(req.Body).Decode(input)
-	return input, err
+type RegisterInput struct {
+	Name     string
+	Email    Email
+	Password string
+}
+
+func (i *RegisterInput) validate() error {
+	var errors validation.ErrorCollection
+	err := i.Email.Validate()
+	if err != nil {
+		errors.Append(err)
+	}
+	if errors.HasError() {
+		return errors
+	}
+	return nil
 }
 
 type RegisterOutput struct {
@@ -41,39 +73,17 @@ func outputFromUser(user *User) *RegisterOutput {
 	return &RegisterOutput{
 		ID:        user.ID,
 		Name:      user.Name,
-		Email:     user.Email,
+		Email:     string(user.Email),
 		CreatedAt: user.CreatedAt,
 	}
 }
 
-// Register godoc
-// @Summary      Create's a new user
-// @Tags         user
-// @Accept       json
-// @Produce      json
-// @Param registerRequest body user.RegisterInput true "User information for registration"
-// @Success      201  {object}   user.RegisterOutput
-// @Router       /register [post]
-func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	input, err := InputFromRequest(req)
-	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-	}
-
-	out, err := h.register(input)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(out)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
 func (h *RegisterHandler) register(input *RegisterInput) (*RegisterOutput, error) {
+	err := input.validate()
+	if err != nil {
+		return nil, err
+	}
+
 	usr, err := NewUser(input.Name, input.Email, input.Password)
 	if err != nil {
 		return nil, err

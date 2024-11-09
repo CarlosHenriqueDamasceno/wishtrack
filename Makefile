@@ -3,6 +3,6 @@ build:
 run: build
 	./bin/api
 tests:
-	go test ./test/...
+	go test ./test/... -v
 doc:
 	swag init --output etc/doc
