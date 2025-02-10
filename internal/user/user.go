@@ -22,35 +22,36 @@ func (e Email) Validate() *validation.ValidationError {
 	return nil
 }
 
+type Password string
+
+func newPassword(plainText string) (Password, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(plainText), bcrypt.DefaultCost)
+	return Password(bytes), err
+}
+
+func (p *Password) VerifyPassword(password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(*p), []byte(password))
+	return err == nil
+}
+
 type User struct {
 	ID        uuid.UUID
 	Name      string
 	Email     Email
-	password  string
+	Password  Password
 	CreatedAt time.Time
 }
 
-func NewUser(name string, email Email, password string) (*User, error) {
-	hashedPassword, err := hashPassword(password)
+func NewUser(name string, email string, password string) (*User, error) {
+	hashedPassword, err := newPassword(password)
 	if err != nil {
 		return nil, err
 	}
 
 	return &User{
-		ID:        uuid.New(),
-		Name:      name,
-		Email:     Email(email),
-		password:  hashedPassword,
-		CreatedAt: time.Now(),
+		ID:       uuid.New(),
+		Name:     name,
+		Email:    Email(email),
+		Password: hashedPassword,
 	}, nil
-}
-
-func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
-
-func (u *User) VerifyPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(u.password), []byte(password))
-	return err == nil
 }

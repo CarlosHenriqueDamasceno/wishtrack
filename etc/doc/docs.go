@@ -33,7 +33,7 @@ const docTemplate = `{
                 "tags": [
                     "user"
                 ],
-                "summary": "Create's a new user",
+                "summary": "Creates a new user",
                 "parameters": [
                     {
                         "description": "User information for registration",

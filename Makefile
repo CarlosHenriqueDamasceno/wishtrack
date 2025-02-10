@@ -1,8 +1,8 @@
 build:
-	go build -o bin/api main.go
+	@go build -o bin/cmd/api main.go
 run: build
-	./bin/api
+	@./bin/api
 tests:
-	go test ./test/... -v
+	@go test ./test/... -v
 doc:
-	swag init --output etc/doc
+	@swag init --output etc/doc

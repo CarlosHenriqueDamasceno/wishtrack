@@ -30,6 +30,8 @@ func (c *ErrorCollection) WithMessage(field, message string) {
 	})
 }
 
+// Returns if a error collection has some error attached
+// Should be used instead of nil comparison
 func (c ErrorCollection) HasError() bool {
 	return len(c) > 0
 }
