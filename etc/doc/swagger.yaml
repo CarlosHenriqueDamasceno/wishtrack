@@ -20,6 +20,19 @@ definitions:
       name:
         type: string
     type: object
+  validation.ErrorCollection:
+    additionalProperties:
+      items:
+        $ref: '#/definitions/validation.ValidationError'
+      type: array
+    type: object
+  validation.ValidationError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -56,11 +69,7 @@ paths:
         "422":
           description: Validation Errors
           schema:
-            additionalProperties:
-              items:
-                type: string
-              type: array
-            type: object
+            $ref: '#/definitions/validation.ErrorCollection'
       summary: Creates a new user
       tags:
       - user

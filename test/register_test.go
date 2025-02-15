@@ -5,12 +5,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/server"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
@@ -22,7 +23,7 @@ type RegisterTestSuite struct {
 	conn           *sql.DB
 	userRepository user.Repository
 	userService    user.Service
-	server         *api.Api
+	server         *server.Api
 }
 
 func (suite *RegisterTestSuite) SetupTest() {
@@ -42,7 +43,12 @@ func (suite *RegisterTestSuite) SetupTest() {
 
 	suite.userRepository = user.NewDatabaseRepository(suite.conn)
 	suite.userService = user.NewService(suite.userRepository)
-	suite.server = api.NewApi(http.NewServeMux(), suite.userService)
+	suite.server = server.NewApi(
+		http.NewServeMux(),
+		server.Config{},
+		slog.New(slog.Default().Handler()),
+		suite.userService,
+	)
 }
 
 func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {

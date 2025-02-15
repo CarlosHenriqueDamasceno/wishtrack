@@ -21,3 +21,12 @@ func RespondJSON(body any, status int, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
+
+func RespondError(err error, status int, w http.ResponseWriter) {
+	errorWrapper := struct {
+		Error string `json:"error"`
+	}{
+		Error: err.Error(),
+	}
+	RespondJSON(errorWrapper, status, w)
+}

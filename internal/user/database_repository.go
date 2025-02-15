@@ -3,12 +3,16 @@ package user
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 )
 
 const QueryExecTimeout = time.Second * 10
+
+var ErrDuplicateEmail = errors.New("e-mail already in use")
 
 type DatabaseRepository struct {
 	connection *sql.DB
@@ -21,64 +25,85 @@ func NewDatabaseRepository(connection *sql.DB) *DatabaseRepository {
 }
 
 func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
-	stm, err := r.connection.Prepare(`
-	INSERT INTO users
-		(id, name, email, password)
-	VALUES
-		(?, ?, ?, ?)
-	RETURNING created_at`)
-
-	if err != nil {
-		return err
-	}
-	defer stm.Close()
+	query := `
+		INSERT INTO users
+			(id, name, email, password)
+		VALUES
+			(?, ?, ?, ?)
+	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
 
-	err = stm.QueryRowContext(ctx, user.ID.String(), user.Name, user.Email, user.Password).Scan(&user.CreatedAt)
+	_, err := r.connection.ExecContext(
+		ctx,
+		query,
+		user.ID.String(),
+		user.Name,
+		user.Email,
+		user.Password,
+	)
 	if err != nil {
-		return err
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			return ErrDuplicateEmail
+		}
+		return wrapMysqlError(err)
 	}
+
+	persistedUser, err := r.Find(ctx, user.ID)
+	if err != nil {
+		return wrapMysqlError(err)
+	}
+
+	user.CreatedAt = persistedUser.CreatedAt
 
 	return nil
 }
 
 func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, error) {
-	stm, err := r.connection.Prepare("select id, name, email, password, created_at from users where id = ?")
-	if err != nil {
-		return nil, err
-	}
-	defer stm.Close()
+	query := `
+		SELECT
+			id, name, email, password, created_at
+		FROM users
+		WHERE id = ?
+	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
 
-	row := stm.QueryRowContext(ctx, id.String())
 	user := &User{}
-	err = row.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CreatedAt)
-	return user, err
+	err := r.connection.QueryRowContext(ctx, query, id.String()).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		return nil, wrapMysqlError(err)
+	}
+
+	return user, nil
 }
 
 func (r *DatabaseRepository) IsEmailAlreadyTaken(ctx context.Context, email Email) (bool, error) {
-	stm, err := r.connection.Prepare("select count(id) from users where email = ?")
-	if err != nil {
-		return false, err
-	}
-	defer stm.Close()
+	query := "SELECT COUNT(id) FROM users WHERE email = ?"
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
 
-	res, err := stm.ExecContext(ctx, email)
+	count := 0
+	err := r.connection.QueryRowContext(ctx, query, email).Scan(&count)
 	if err != nil {
-		return false, err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return false, err
+		return false, wrapMysqlError(err)
 	}
 
 	return count > 0, nil
+}
+
+func wrapMysqlError(err error) error {
+	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
+		return errors.New(mysqlErr.Message)
+	}
+	return err
 }

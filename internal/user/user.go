@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/CarlosHenriqueDamasceno/wishtrack/validation"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/validation"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )

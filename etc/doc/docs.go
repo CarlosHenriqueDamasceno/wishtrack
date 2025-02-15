@@ -55,13 +55,7 @@ const docTemplate = `{
                     "422": {
                         "description": "Validation Errors",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/validation.ErrorCollection"
                         }
                     }
                 }
@@ -96,6 +90,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "validation.ErrorCollection": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/validation.ValidationError"
+                }
+            }
+        },
+        "validation.ValidationError": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
                     "type": "string"
                 }
             }

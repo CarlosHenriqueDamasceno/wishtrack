@@ -2,9 +2,10 @@ package user
 
 import (
 	"context"
+	"log"
 	"time"
 
-	"github.com/CarlosHenriqueDamasceno/wishtrack/validation"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/validation"
 	"github.com/google/uuid"
 )
 
@@ -32,7 +33,10 @@ func (s *service) Register(ctx context.Context, input *RegisterInput) (*Register
 		return nil, err
 	}
 
-	s.repository.Create(ctx, user)
+	err = s.repository.Create(ctx, user)
+	if err != nil {
+		return nil, err
+	}
 
 	return outputFromUser(user), nil
 }
@@ -46,8 +50,10 @@ func (s *service) validate(ctx context.Context, user *User) error {
 
 	isTaken, databaseErr := s.repository.IsEmailAlreadyTaken(ctx, user.Email)
 	if databaseErr != nil {
-		return err
+		return databaseErr
 	}
+
+	log.Println(isTaken)
 
 	if isTaken {
 		errors.WithMessage("email", "e-mail already in use")
