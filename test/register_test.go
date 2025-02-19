@@ -37,7 +37,7 @@ func (suite *RegisterTestSuite) SetupTest() {
 	suite.server = server.NewApi(
 		http.NewServeMux(),
 		server.Config{},
-		slog.New(slog.Default().Handler()),
+		slog.Default(),
 		suite.userService,
 	)
 }

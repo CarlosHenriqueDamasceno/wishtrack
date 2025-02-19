@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/handlers"
 	_ "github.com/CarlosHenriqueDamasceno/wishtrack/etc/doc"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -38,5 +37,6 @@ func (a *Api) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (a *Api) setupRoutes() {
 	docsUrl := fmt.Sprintf("%s/swagger/doc.json", a.config.Address)
 	a.router.Handle("GET /swagger/*", httpSwagger.Handler(httpSwagger.URL(docsUrl)))
-	a.router.Handle("POST /api/v1/register", handlers.NewRegisterHandler(a.userService, a.logger))
+
+	a.router.HandleFunc("POST /api/v1/register", a.handleRegister)
 }

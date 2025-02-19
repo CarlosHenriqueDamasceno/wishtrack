@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/validation"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/validation"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -51,13 +51,12 @@ func (u *User) VerifyPassword(password string) bool {
 }
 
 type User struct {
-	ID            uuid.UUID
-	Name          string
-	Email         Email
-	plainPassword string
-	password      password
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID        uuid.UUID
+	Name      string
+	Email     Email
+	password  password
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func NewUser(name string, email string, password string) (*User, error) {
@@ -67,10 +66,9 @@ func NewUser(name string, email string, password string) (*User, error) {
 	}
 
 	return &User{
-		ID:            uuid.New(),
-		Name:          name,
-		Email:         Email(email),
-		password:      hashedPassword,
-		plainPassword: password,
+		ID:       uuid.New(),
+		Name:     name,
+		Email:    Email(email),
+		password: hashedPassword,
 	}, nil
 }

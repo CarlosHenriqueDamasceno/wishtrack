@@ -29,4 +29,4 @@ migrate-down:
 
 .PHONY: gen-docs
 gen-docs:
-	@swag init -o ./etc/doc -g ./api/main.go -d cmd,internal && swag fmt
+	@swag init -o ./etc/doc -g ./api/main.go -d cmd,internal,pkg && swag fmt

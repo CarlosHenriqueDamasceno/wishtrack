@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/validation"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/validation"
 	"github.com/google/uuid"
 )
 
