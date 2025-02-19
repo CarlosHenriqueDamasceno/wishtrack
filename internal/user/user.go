@@ -40,6 +40,7 @@ type User struct {
 	Email     Email
 	Password  Password
 	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func NewUser(name string, email string, password string) (*User, error) {

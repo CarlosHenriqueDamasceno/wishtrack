@@ -27,19 +27,10 @@ type RegisterTestSuite struct {
 }
 
 func (suite *RegisterTestSuite) SetupTest() {
-	conn, err := sql.Open("sqlite3", ":memory:")
+	conn, err := SetupDatabase()
 	suite.Assert().Nil(err, "Fail to connect to database")
 
 	suite.conn = conn
-	suite.conn.Exec(
-		`CREATE TABLE users (
-			id varchar(255),
-			name varchar(255),
-			email varchar(255) UNIQUE,
-			password varchar(255),
-			created_at timestamp default (datetime('now','localtime'))
-		)`,
-	)
 
 	suite.userRepository = user.NewDatabaseRepository(suite.conn)
 	suite.userService = user.NewService(suite.userRepository)
@@ -49,6 +40,10 @@ func (suite *RegisterTestSuite) SetupTest() {
 		slog.New(slog.Default().Handler()),
 		suite.userService,
 	)
+}
+
+func (suite *RegisterTestSuite) TearDownTest() {
+	suite.conn.Close()
 }
 
 func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
@@ -65,7 +60,12 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
 
 	suite.server.ServeHTTP(recorder, req)
-	suite.Assert().Equal(http.StatusUnprocessableEntity, recorder.Result().StatusCode, "Response status code should be 422 unprocessable entity")
+
+	suite.Assert().Equal(
+		http.StatusUnprocessableEntity,
+		recorder.Result().StatusCode,
+		"Response status code should be 422 unprocessable entity",
+	)
 
 	resp := &struct {
 		Errors map[string][]string `json:"errors"`
@@ -77,11 +77,11 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
 	expectedErrors := map[string][]string{"email": {"field \"email\" must be a valid e-mail address"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	res, err := suite.conn.Exec("select count(id) from users where email = ?", input.Email)
-	suite.Assert().NoError(err, "fail to fetch database")
-	rows, err := res.RowsAffected()
-	suite.Assert().NoError(err, "fail to fetch rows")
-	suite.Assert().Equal(int64(0), rows)
+	count := 0
+	row := suite.conn.QueryRow("select count(id) from users where email = ?", input.Email)
+	err = row.Scan(&count)
+	suite.Assert().Nil(err, "fail to fetch database")
+	suite.Assert().Equal(0, count)
 }
 
 func (suite *RegisterTestSuite) TestShouldFailToRegisterWithEmailInUse() {
@@ -125,12 +125,11 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithEmailInUse() {
 	expectedErrors := map[string][]string{"email": {"e-mail already in use"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	res, err := suite.conn.Exec("select count(id) from users where email = ?", input.Email)
-	suite.Assert().NoError(err, "fail to fetch database")
-
-	rows, err := res.RowsAffected()
-	suite.Assert().NoError(err, "fail to fetch rows")
-	suite.Assert().Equal(int64(1), rows)
+	count := 0
+	row := suite.conn.QueryRow("select count(id) from users where email = ?", input.Email)
+	err = row.Scan(&count)
+	suite.Assert().Nil(err, "fail to fetch database")
+	suite.Assert().Equal(1, count)
 }
 
 func (suite *RegisterTestSuite) TestShouldRegister() {
@@ -154,6 +153,7 @@ func (suite *RegisterTestSuite) TestShouldRegister() {
 		Name      string    `json:"name"`
 		Email     string    `json:"email"`
 		CreatedAt time.Time `json:"created_at"`
+		UpdateAt  time.Time `json:"updated_at"`
 	}{}
 
 	err = json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
@@ -163,6 +163,7 @@ func (suite *RegisterTestSuite) TestShouldRegister() {
 	suite.Assert().Nil(err, "Result ID is invalid: %s")
 
 	suite.Assert().NotZero(responseBody.CreatedAt, "Created at must be defined")
+	suite.Assert().NotZero(responseBody.UpdateAt, "Updated at must be defined")
 
 	savedUser, err := suite.userRepository.Find(context.Background(), uuid.MustParse(responseBody.ID))
 	suite.Assert().Nil(err, "The user must be saved at this point: %s")

@@ -56,6 +56,7 @@ func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
 	}
 
 	user.CreatedAt = persistedUser.CreatedAt
+	user.UpdatedAt = persistedUser.UpdatedAt
 
 	return nil
 }
@@ -63,7 +64,7 @@ func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
 func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, error) {
 	query := `
 		SELECT
-			id, name, email, password, created_at
+			id, name, email, password, created_at, updated_at
 		FROM users
 		WHERE id = ?
 	`
@@ -78,6 +79,7 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, err
 		&user.Email,
 		&user.Password,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, wrapMysqlError(err)

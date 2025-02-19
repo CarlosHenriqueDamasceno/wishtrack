@@ -20,6 +20,7 @@ type RegisterOutput struct {
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (s *service) Register(ctx context.Context, input *RegisterInput) (*RegisterOutput, error) {
@@ -72,5 +73,6 @@ func outputFromUser(user *User) *RegisterOutput {
 		Name:      user.Name,
 		Email:     string(user.Email),
 		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 }
