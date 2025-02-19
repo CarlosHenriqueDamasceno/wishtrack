@@ -50,7 +50,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
 	input := user.RegisterInput{
 		Name:     "Carlos",
 		Email:    "carlos",
-		Password: "senha",
+		Password: "12345678",
 	}
 
 	body, err := json.Marshal(input)
@@ -77,24 +77,19 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
 	expectedErrors := map[string][]string{"email": {"field \"email\" must be a valid e-mail address"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	count := 0
-	row := suite.conn.QueryRow("select count(id) from users where email = ?", input.Email)
-	err = row.Scan(&count)
-	suite.Assert().Nil(err, "fail to fetch database")
-	suite.Assert().Equal(0, count)
+	AssertDatabaseCount(suite.conn, &suite.Suite, 0, "users", "id")
 }
 
 func (suite *RegisterTestSuite) TestShouldFailToRegisterWithEmailInUse() {
 	input := user.RegisterInput{
 		Name:     "Carlos",
 		Email:    "carlos@teste.com",
-		Password: "senha",
+		Password: "12345678",
 	}
 
 	err := suite.userRepository.Create(context.Background(), &user.User{
-		Name:     input.Name,
-		Email:    user.Email(input.Email),
-		Password: user.Password(input.Password),
+		Name:  input.Name,
+		Email: user.Email(input.Email),
 	})
 	if err != nil {
 		suite.Failf("Fake user should be saved, but got error: %s", err.Error())
@@ -125,11 +120,41 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithEmailInUse() {
 	expectedErrors := map[string][]string{"email": {"e-mail already in use"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	count := 0
-	row := suite.conn.QueryRow("select count(id) from users where email = ?", input.Email)
-	err = row.Scan(&count)
-	suite.Assert().Nil(err, "fail to fetch database")
-	suite.Assert().Equal(1, count)
+	AssertDatabaseCount(suite.conn, &suite.Suite, 1, "users", "id")
+}
+
+func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidPassword() {
+	input := user.RegisterInput{
+		Name:     "Carlos Henrique",
+		Email:    "carlos@wishtrack.com",
+		Password: "senha",
+	}
+
+	body, err := json.Marshal(input)
+	suite.Assert().Nil(err, "Body should be serialized")
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
+
+	suite.server.ServeHTTP(recorder, req)
+
+	suite.Assert().Equal(
+		http.StatusUnprocessableEntity,
+		recorder.Result().StatusCode,
+		"Response status code should be 422 unprocessable entity",
+	)
+
+	resp := &struct {
+		Errors map[string][]string `json:"errors"`
+	}{}
+
+	err = json.NewDecoder(recorder.Result().Body).Decode(resp)
+	suite.Assert().Nil(err, "fail to parse response")
+
+	expectedErrors := map[string][]string{"password": {"field \"password\" must be at least 8 characters long"}}
+	suite.Assert().Equal(expectedErrors, resp.Errors)
+
+	AssertDatabaseCount(suite.conn, &suite.Suite, 0, "users", "id")
 }
 
 func (suite *RegisterTestSuite) TestShouldRegister() {
@@ -170,7 +195,7 @@ func (suite *RegisterTestSuite) TestShouldRegister() {
 
 	suite.Assert().Equal(input.Name, savedUser.Name)
 	suite.Assert().Equal(input.Email, string(savedUser.Email))
-	suite.Assert().True(savedUser.Password.VerifyPassword(input.Password))
+	suite.Assert().True(savedUser.VerifyPassword(input.Password))
 }
 
 func TestRegisterTestSuite(t *testing.T) {

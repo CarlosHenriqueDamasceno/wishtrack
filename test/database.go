@@ -7,6 +7,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/suite"
 )
 
 func SetupDatabase() (*sql.DB, error) {
@@ -32,4 +33,11 @@ func SetupDatabase() (*sql.DB, error) {
 	m.Up()
 
 	return conn, nil
+}
+
+func AssertDatabaseCount(conn *sql.DB, suite *suite.Suite, expectedCount int, table string, column string) {
+	var count int
+	err := conn.QueryRow("SELECT COUNT(" + column + ") FROM " + table).Scan(&count)
+	suite.Nil(err, "Fail to count rows")
+	suite.Equal(expectedCount, count)
 }

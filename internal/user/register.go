@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/validation"
@@ -44,7 +43,13 @@ func (s *service) Register(ctx context.Context, input *RegisterInput) (*Register
 
 func (s *service) validate(ctx context.Context, user *User) error {
 	var errors validation.ErrorCollection
-	err := user.Email.Validate()
+
+	err := user.Email.validate()
+	if err != nil {
+		errors.Append(err)
+	}
+
+	err = user.password.validate()
 	if err != nil {
 		errors.Append(err)
 	}
@@ -53,8 +58,6 @@ func (s *service) validate(ctx context.Context, user *User) error {
 	if databaseErr != nil {
 		return databaseErr
 	}
-
-	log.Println(isTaken)
 
 	if isTaken {
 		errors.WithMessage("email", "e-mail already in use")

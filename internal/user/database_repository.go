@@ -41,7 +41,7 @@ func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
 		user.ID.String(),
 		user.Name,
 		user.Email,
-		user.Password,
+		user.password.value,
 	)
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
@@ -77,7 +77,7 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, err
 		&user.ID,
 		&user.Name,
 		&user.Email,
-		&user.Password,
+		&user.password.value,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
