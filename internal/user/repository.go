@@ -2,13 +2,13 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"github.com/google/uuid"
 )
 
 type Repository interface {
 	Find(ctx context.Context, id uuid.UUID) (*User, error)
+	FindByEmail(ctx context.Context, email string) (*User, error)
 	Create(ctx context.Context, user *User) error
 	IsEmailAlreadyTaken(ctx context.Context, email Email) (bool, error)
 }
@@ -26,7 +26,7 @@ func NewInMemoryRepository() Repository {
 func (r *InMemoryRepository) Find(ctx context.Context, id uuid.UUID) (*User, error) {
 	user := r.users[id.String()]
 	if user == nil {
-		return nil, errors.New("User not found")
+		return nil, ErrUserNotFound
 	}
 	return user, nil
 }
@@ -44,4 +44,14 @@ func (r *InMemoryRepository) IsEmailAlreadyTaken(ctx context.Context, email Emai
 	}
 
 	return false, nil
+}
+
+func (r *InMemoryRepository) FindByEmail(ctx context.Context, email string) (*User, error) {
+	for _, user := range r.users {
+		if string(user.Email) == email {
+			return user, nil
+		}
+	}
+
+	return nil, ErrUserNotFound
 }

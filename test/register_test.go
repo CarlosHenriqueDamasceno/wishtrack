@@ -1,7 +1,6 @@
 package test
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -53,11 +52,8 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
 		Password: "12345678",
 	}
 
-	body, err := json.Marshal(input)
-	suite.Assert().Nil(err, "Body should be serialized")
-
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 
@@ -71,7 +67,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
 		Errors map[string][]string `json:"errors"`
 	}{}
 
-	err = json.NewDecoder(recorder.Result().Body).Decode(resp)
+	err := json.NewDecoder(recorder.Result().Body).Decode(resp)
 	suite.Assert().Nil(err, "fail to parse response")
 
 	expectedErrors := map[string][]string{"email": {"field \"email\" must be a valid e-mail address"}}
@@ -95,11 +91,8 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithEmailInUse() {
 		suite.Failf("Fake user should be saved, but got error: %s", err.Error())
 	}
 
-	body, err := json.Marshal(input)
-	suite.Assert().Nil(err, "Body should be serialized")
-
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(
@@ -130,11 +123,8 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidPassword() {
 		Password: "senha",
 	}
 
-	body, err := json.Marshal(input)
-	suite.Assert().Nil(err, "Body should be serialized")
-
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 
@@ -148,7 +138,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidPassword() {
 		Errors map[string][]string `json:"errors"`
 	}{}
 
-	err = json.NewDecoder(recorder.Result().Body).Decode(resp)
+	err := json.NewDecoder(recorder.Result().Body).Decode(resp)
 	suite.Assert().Nil(err, "fail to parse response")
 
 	expectedErrors := map[string][]string{"password": {"field \"password\" must be at least 8 characters long"}}
@@ -164,11 +154,8 @@ func (suite *RegisterTestSuite) TestShouldRegister() {
 		Password: "password",
 	}
 
-	body, err := json.Marshal(input)
-	suite.Assert().Nil(err, "Body should be serialized")
-
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusCreated, recorder.Result().StatusCode, "Response status code should be 201 created")
@@ -181,7 +168,7 @@ func (suite *RegisterTestSuite) TestShouldRegister() {
 		UpdateAt  time.Time `json:"updated_at"`
 	}{}
 
-	err = json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
+	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
 	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
 
 	err = uuid.Validate(responseBody.ID)

@@ -39,4 +39,5 @@ func (a *Api) setupRoutes() {
 	a.router.Handle("GET /swagger/*", httpSwagger.Handler(httpSwagger.URL(docsUrl)))
 
 	a.router.HandleFunc("POST /api/v1/register", a.handleRegister)
+	a.router.HandleFunc("POST /api/v1/login", a.handleLogin)
 }

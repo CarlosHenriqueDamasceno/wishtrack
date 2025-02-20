@@ -103,6 +103,32 @@ func (r *DatabaseRepository) IsEmailAlreadyTaken(ctx context.Context, email Emai
 	return count > 0, nil
 }
 
+func (r *DatabaseRepository) FindByEmail(ctx context.Context, email string) (*User, error) {
+	query := `
+				SELECT
+					id, name, email, password, created_at, updated_at
+				FROM users
+				WHERE email = ?
+			`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
+	defer cancel()
+
+	user := &User{}
+	err := r.connection.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.Name,
+		&user.password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return nil, wrapMysqlError(err)
+	}
+
+	return user, nil
+}
+
 func wrapMysqlError(err error) error {
 	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
 		return errors.New(mysqlErr.Message)
