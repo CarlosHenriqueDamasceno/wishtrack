@@ -40,3 +40,17 @@ func (service *service) Login(ctx context.Context, input *LoginInput) (*LoginOut
 		Token: token,
 	}, nil
 }
+
+func (service *service) ValidateToken(ctx context.Context, token string) (*User, error) {
+	id, err := service.authenticator.ValidateToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := service.repository.Find(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
