@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/database"
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 )
@@ -38,7 +39,7 @@ func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
 	_, err := r.connection.ExecContext(
 		ctx,
 		query,
-		user.ID.String(),
+		user.ID,
 		user.Name,
 		user.Email,
 		user.password.value,
@@ -47,12 +48,12 @@ func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
 			return ErrDuplicateEmail
 		}
-		return wrapMysqlError(err)
+		return database.WrapMysqlError(err)
 	}
 
 	persistedUser, err := r.Find(ctx, user.ID)
 	if err != nil {
-		return wrapMysqlError(err)
+		return database.WrapMysqlError(err)
 	}
 
 	user.CreatedAt = persistedUser.CreatedAt
@@ -82,7 +83,7 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, err
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, wrapMysqlError(err)
+		return nil, database.WrapMysqlError(err)
 	}
 
 	return user, nil
@@ -97,7 +98,7 @@ func (r *DatabaseRepository) IsEmailAlreadyTaken(ctx context.Context, email Emai
 	count := 0
 	err := r.connection.QueryRowContext(ctx, query, email).Scan(&count)
 	if err != nil {
-		return false, wrapMysqlError(err)
+		return false, database.WrapMysqlError(err)
 	}
 
 	return count > 0, nil
@@ -128,16 +129,9 @@ func (r *DatabaseRepository) FindByEmail(ctx context.Context, email string) (*Us
 		case sql.ErrNoRows:
 			return nil, ErrUserNotFound
 		default:
-			return nil, wrapMysqlError(err)
+			return nil, database.WrapMysqlError(err)
 		}
 	}
 
 	return user, nil
-}
-
-func wrapMysqlError(err error) error {
-	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
-		return errors.New(mysqlErr.Message)
-	}
-	return err
 }

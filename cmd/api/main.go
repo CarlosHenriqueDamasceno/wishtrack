@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/server"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -14,9 +15,11 @@ import (
 
 func run(conf *server.Config, logger *slog.Logger) error {
 	userRepository := user.NewDatabaseRepository(conf.Database.Conn)
+	contentRepository := content.NewDatabaseRepository(conf.Database.Conn)
 	jwtAuth := user.NewJwtAuthenticator(conf.Auth.Key, conf.Auth.Iss, conf.Auth.Aud, conf.Auth.Exp)
 	userService := user.NewService(userRepository, jwtAuth)
-	api := server.NewApi(http.NewServeMux(), conf, logger, userService)
+	contentService := content.NewService(contentRepository)
+	api := server.NewApi(http.NewServeMux(), conf, logger, userService, contentService)
 	server := http.Server{
 		Addr:    conf.Address,
 		Handler: api,
@@ -26,7 +29,7 @@ func run(conf *server.Config, logger *slog.Logger) error {
 
 // @title						WishTrack API
 // @version					1.0
-// @description				A app to manage all the things you want see or have saw.
+// @description				A app to manage all the things you wanna see (or had saw).
 // @contact.name				API Support
 // @contact.email				carlos@wishtrack.io
 // @license.name				Apache 2.0
@@ -35,6 +38,11 @@ func run(conf *server.Config, logger *slog.Logger) error {
 // @BasePath					/api/v1
 // @externalDocs.description	OpenAPI
 // @externalDocs.url			https://swagger.io/resources/open-api/
+//
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 

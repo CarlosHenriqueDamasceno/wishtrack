@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const registerBaseUrl = "/api/v1/register"
+
 type RegisterTestSuite struct {
 	suite.Suite
 	conn           *sql.DB
@@ -38,6 +40,7 @@ func (suite *RegisterTestSuite) SetupTest() {
 		&server.Config{},
 		slog.Default(),
 		suite.userService,
+		nil,
 	)
 }
 
@@ -53,7 +56,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
 	}
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", PrepareBody(input, &suite.Suite))
+	req := httptest.NewRequest(http.MethodPost, registerBaseUrl, PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 
@@ -92,7 +95,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithEmailInUse() {
 	}
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", PrepareBody(input, &suite.Suite))
+	req := httptest.NewRequest(http.MethodPost, registerBaseUrl, PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(
@@ -124,7 +127,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidPassword() {
 	}
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", PrepareBody(input, &suite.Suite))
+	req := httptest.NewRequest(http.MethodPost, registerBaseUrl, PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 
@@ -155,17 +158,17 @@ func (suite *RegisterTestSuite) TestShouldRegister() {
 	}
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/register", PrepareBody(input, &suite.Suite))
+	req := httptest.NewRequest(http.MethodPost, registerBaseUrl, PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
-	suite.Assert().Equal(http.StatusCreated, recorder.Result().StatusCode, "Response status code should be 201 created")
+	suite.Assert().Equal(http.StatusCreated, recorder.Result().StatusCode)
 
 	responseBody := struct {
 		ID        string    `json:"id"`
 		Name      string    `json:"name"`
 		Email     string    `json:"email"`
 		CreatedAt time.Time `json:"created_at"`
-		UpdateAt  time.Time `json:"updated_at"`
+		UpdatedAt time.Time `json:"updated_at"`
 	}{}
 
 	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
@@ -175,7 +178,7 @@ func (suite *RegisterTestSuite) TestShouldRegister() {
 	suite.Assert().Nil(err, "Result ID is invalid: %s")
 
 	suite.Assert().NotZero(responseBody.CreatedAt, "Created at must be defined")
-	suite.Assert().NotZero(responseBody.UpdateAt, "Updated at must be defined")
+	suite.Assert().NotZero(responseBody.UpdatedAt, "Updated at must be defined")
 
 	savedUser, err := suite.userRepository.Find(context.Background(), uuid.MustParse(responseBody.ID))
 	suite.Assert().Nil(err, "The user must be saved at this point: %s")

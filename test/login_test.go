@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	baseUrl         = "/api/v1/login"
+	loginBaseUrl    = "/api/v1/login"
 	secret          = "ff1feb0beced46fc8ae6f662f7846eb2"
 	aud             = "wishtrack"
 	tokenExpiration = time.Minute
@@ -54,6 +54,7 @@ func (suite *LoginTestSuite) SetupTest() {
 		&server.Config{},
 		slog.Default(),
 		suite.userService,
+		nil,
 	)
 }
 
@@ -83,7 +84,7 @@ func (suite *LoginTestSuite) TestShouldFailToLoginWithInvalidEmail() {
 	}
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, baseUrl, PrepareBody(input, &suite.Suite))
+	req := httptest.NewRequest(http.MethodPost, loginBaseUrl, PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusUnauthorized, recorder.Result().StatusCode)
@@ -113,7 +114,7 @@ func (suite *LoginTestSuite) TestShouldFailToLoginWithWrongPassword() {
 	}
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, baseUrl, PrepareBody(input, &suite.Suite))
+	req := httptest.NewRequest(http.MethodPost, loginBaseUrl, PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusUnauthorized, recorder.Result().StatusCode)
@@ -143,7 +144,7 @@ func (suite *LoginTestSuite) TestShouldLogin() {
 	}
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, baseUrl, PrepareBody(input, &suite.Suite))
+	req := httptest.NewRequest(http.MethodPost, loginBaseUrl, PrepareBody(input, &suite.Suite))
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)

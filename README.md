@@ -13,9 +13,9 @@ A ideia é ser um app onde o usuário possa cadastrar livros/filmes/jogos e cont
 ### Entidade Content (Conteúdo)
 ```json
 {
-    "nome": "Senhor dos aneis: O retorno do rei",
+    "name": "Senhor dos aneis: O retorno do rei",
     "category": "book",
-    "genre": [
+    "genres": [
         "fantasy",
         "medieval",
         "adventure"

@@ -1,5 +1,55 @@
 basePath: /api/v1
 definitions:
+  content.WriteDownInput:
+    properties:
+      category:
+        type: string
+      genres:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      summary:
+        type: string
+      userID:
+        type: string
+      wish_level:
+        type: integer
+    type: object
+  content.WriteDownOutput:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      summary:
+        type: string
+      updated_at:
+        type: string
+      wish_level:
+        type: integer
+    type: object
+  user.LoginInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  user.LoginOutput:
+    properties:
+      token:
+        type: string
+    type: object
   user.RegisterInput:
     properties:
       email:
@@ -18,6 +68,8 @@ definitions:
       id:
         type: string
       name:
+        type: string
+      updated_at:
         type: string
     type: object
   validation.ErrorCollection:
@@ -41,13 +93,38 @@ info:
   contact:
     email: carlos@wishtrack.io
     name: API Support
-  description: A app to manage all the things you want see or have saw.
+  description: A app to manage all the things you wanna see (or had saw).
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: WishTrack API
   version: "1.0"
 paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            $ref: '#/definitions/user.LoginOutput'
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - user
   /register:
     post:
       consumes:
@@ -55,7 +132,7 @@ paths:
       parameters:
       - description: User information for registration
         in: body
-        name: registerRequest
+        name: payload
         required: true
         schema:
           $ref: '#/definitions/user.RegisterInput'
@@ -73,4 +150,36 @@ paths:
       summary: Creates a new user
       tags:
       - user
+  /write-down:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Content info
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/content.WriteDownInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Content Details
+          schema:
+            $ref: '#/definitions/content.WriteDownOutput'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/validation.ErrorCollection'
+      security:
+      - ApiKeyAuth: []
+      summary: Writes Down a content
+      tags:
+      - content
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

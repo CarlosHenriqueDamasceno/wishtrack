@@ -14,10 +14,10 @@ import (
 //	@Tags		user
 //	@Accept		json
 //	@Produce	json
-//	@Param		payload	body		user.RegisterInput	true	"User credentials"
-//	@Success	200		{string}	"token"
-//	@Failure	422		{object}	validation.ErrorCollection	"Validation Errors"
-//	@Router		/register [post]
+//	@Param		payload	body		user.LoginInput		true	"User credentials"
+//	@Success	200		{object}	user.LoginOutput	"token"
+//	@Failure	401		{string}	string				"Invalid credentials"
+//	@Router		/login [post]
 func (api *Api) handleLogin(w http.ResponseWriter, r *http.Request) {
 	input, err := utils.ReceiveJSON[*user.LoginInput](r)
 	if err != nil {
