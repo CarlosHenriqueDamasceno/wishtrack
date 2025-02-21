@@ -13,11 +13,13 @@ type Service interface {
 }
 
 type service struct {
-	repository Repository
+	repository    Repository
+	authenticator Authenticator
 }
 
-func NewService(r Repository) Service {
+func NewService(r Repository, auth Authenticator) Service {
 	return &service{
-		repository: r,
+		repository:    r,
+		authenticator: auth,
 	}
 }

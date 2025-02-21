@@ -19,16 +19,24 @@ type LoginOutput struct {
 func (service *service) Login(ctx context.Context, input *LoginInput) (*LoginOutput, error) {
 	user, err := service.repository.FindByEmail(ctx, input.Email)
 	if err != nil {
-		return nil, err
+		switch err {
+		case ErrUserNotFound:
+			return nil, ErrIncorrectCredentials
+		default:
+			return nil, err
+		}
 	}
 
 	if !user.VerifyPassword(input.Password) {
 		return nil, ErrIncorrectCredentials
 	}
 
-	//TODO: Generate token
+	token, err := service.authenticator.CreateToken(user)
+	if err != nil {
+		return nil, err
+	}
 
 	return &LoginOutput{
-		Token: "asdasdadasda",
+		Token: token,
 	}, nil
 }

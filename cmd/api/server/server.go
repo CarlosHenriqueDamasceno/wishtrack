@@ -13,13 +13,13 @@ import (
 type Api struct {
 	router      *http.ServeMux
 	userService user.Service
-	config      Config
+	config      *Config
 	logger      *slog.Logger
 }
 
 // Creates and starts a new Api.
 // This method registers all handlers in the Api
-func NewApi(router *http.ServeMux, config Config, logger *slog.Logger, userService user.Service) *Api {
+func NewApi(router *http.ServeMux, config *Config, logger *slog.Logger, userService user.Service) *Api {
 	s := &Api{
 		router:      router,
 		userService: userService,

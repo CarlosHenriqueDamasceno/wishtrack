@@ -32,10 +32,10 @@ func (suite *RegisterTestSuite) SetupTest() {
 	suite.conn = conn
 
 	suite.userRepository = user.NewDatabaseRepository(suite.conn)
-	suite.userService = user.NewService(suite.userRepository)
+	suite.userService = user.NewService(suite.userRepository, nil)
 	suite.server = server.NewApi(
 		http.NewServeMux(),
-		server.Config{},
+		&server.Config{},
 		slog.Default(),
 		suite.userService,
 	)

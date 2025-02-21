@@ -1,11 +1,11 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/utils"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
-	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/validation"
 )
 
 // Register godoc
@@ -28,11 +28,9 @@ func (api *Api) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	out, err := api.userService.Login(r.Context(), input)
 	if err != nil {
-		switch err.(type) {
-		case validation.ErrorCollection:
-			api.logger.Info("failed to decode JSON", "error", err)
-			utils.RespondJSON(err, http.StatusUnprocessableEntity, w)
-			return
+		switch {
+		case errors.Is(err, user.ErrIncorrectCredentials):
+			utils.RespondError(err, http.StatusUnauthorized, w)
 		default:
 			api.logger.Error("failed login user", "error", err)
 			utils.RespondError(err, http.StatusInternalServerError, w)

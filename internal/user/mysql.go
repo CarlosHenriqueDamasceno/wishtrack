@@ -118,12 +118,18 @@ func (r *DatabaseRepository) FindByEmail(ctx context.Context, email string) (*Us
 	err := r.connection.QueryRowContext(ctx, query, email).Scan(
 		&user.ID,
 		&user.Name,
-		&user.password,
+		&user.Email,
+		&user.password.value,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, wrapMysqlError(err)
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrUserNotFound
+		default:
+			return nil, wrapMysqlError(err)
+		}
 	}
 
 	return user, nil

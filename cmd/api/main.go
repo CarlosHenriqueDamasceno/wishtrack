@@ -12,9 +12,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func run(conf server.Config, logger *slog.Logger) error {
-	userRepository := user.NewDatabaseRepository(conf.Db)
-	userService := user.NewService(userRepository)
+func run(conf *server.Config, logger *slog.Logger) error {
+	userRepository := user.NewDatabaseRepository(conf.Database.Conn)
+	jwtAuth := user.NewJwtAuthenticator(conf.Auth.Key, conf.Auth.Iss, conf.Auth.Aud, conf.Auth.Exp)
+	userService := user.NewService(userRepository, jwtAuth)
 	api := server.NewApi(http.NewServeMux(), conf, logger, userService)
 	server := http.Server{
 		Addr:    conf.Address,
@@ -42,18 +43,17 @@ func main() {
 		logger.Error("Error loading .env file")
 	}
 
-	conn, err := sql.Open("mysql", os.Getenv("DB_DSN"))
+	config := server.LoadEnv()
+
+	conn, err := sql.Open("mysql", config.Database.Dsn)
 	if err != nil {
 		logger.Error("Database connection fail", "error", err.Error())
 	}
 	defer conn.Close()
 
-	logger.Info("Database connection established.")
+	config.SetDatabaseConnection(conn)
 
-	config := server.Config{
-		Address: ":8080",
-		Db:      conn,
-	}
+	logger.Info("Database connection established.")
 
 	if err := run(config, logger); err != nil {
 		logger.Error("Server error", "error", err.Error())
