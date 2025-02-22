@@ -38,6 +38,27 @@ definitions:
       wish_level:
         type: integer
     type: object
+  content.output:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      summary:
+        type: string
+      updated_at:
+        type: string
+      wish_level:
+        type: integer
+    type: object
   user.LoginInput:
     properties:
       email:
@@ -100,6 +121,28 @@ info:
   title: WishTrack API
   version: "1.0"
 paths:
+  /contents/feed:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Suggestions
+          schema:
+            items:
+              $ref: '#/definitions/content.output'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get suggestions for today
+      tags:
+      - content
   /contents/write-down:
     post:
       consumes:

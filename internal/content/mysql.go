@@ -92,3 +92,48 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*Content, 
 
 	return content, nil
 }
+
+func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Content, error) {
+	query := `
+		SELECT
+			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
+		FROM contents
+		WHERE user_id = ? ORDER BY wish_level DESC LIMIT 5
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
+	defer cancel()
+
+	rows, err := r.connection.QueryContext(ctx, query, userId)
+	if err != nil {
+		return nil, database.WrapMysqlError(err)
+	}
+
+	var feed []*Content
+
+	for rows.Next() {
+		var genres string
+		content := &Content{}
+
+		err := rows.Scan(
+			&content.ID,
+			&content.Name,
+			&content.Category,
+			&genres,
+			&content.Summary,
+			&content.WishLevel,
+			&content.UserID,
+			&content.CreatedAt,
+			&content.UpdatedAt,
+		)
+		if err != nil {
+			return nil, database.WrapMysqlError(err)
+		}
+
+		content.Genres = strings.Split(genres, "|")
+
+		feed = append(feed, content)
+	}
+
+	return feed, nil
+}

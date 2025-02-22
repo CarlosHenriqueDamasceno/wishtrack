@@ -98,6 +98,32 @@ func (api *Api) handleWriteDown(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(out, http.StatusCreated, w)
 }
 
+// Feed godoc
+//
+//	@Summary	Get suggestions for today
+//	@Tags		content
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	content.FeedOutput	"Suggestions"
+//	@Failure	401	{string}	string				"Unauthorized"
+//	@Router		/contents/feed [get]
+//	@Security	ApiKeyAuth
+func (api *Api) handleFeed(w http.ResponseWriter, r *http.Request) {
+	user, err := api.GetLoggedUser(w, r)
+	if err != nil {
+		api.handleError(w, r, "invalid token", err)
+		return
+	}
+
+	out, err := api.contentService.Feed(r.Context(), user.ID)
+	if err != nil {
+		api.handleError(w, r, "error getting feed", err)
+		return
+	}
+
+	utils.RespondJSON(out, http.StatusOK, w)
+}
+
 func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage string, err error) {
 	if _, ok := err.(validation.ErrorCollection); ok {
 		api.logger.Info("validation error", "error", err)
@@ -118,5 +144,4 @@ func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage s
 			utils.RespondError(err, http.StatusInternalServerError, w)
 		}
 	}
-
 }

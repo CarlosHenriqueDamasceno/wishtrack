@@ -1,8 +1,6 @@
 package test
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -20,11 +18,7 @@ import (
 const writeDownBaseUrl = "/api/v1/contents/write-down"
 
 type WriteDownTestSuite struct {
-	suite.Suite
-	conn           *sql.DB
-	server         *server.Api
-	userService    user.Service
-	contentService content.Service
+	LoggedRequestBaseSuite
 }
 
 func (suite *WriteDownTestSuite) SetupTest() {
@@ -56,28 +50,6 @@ func (suite *WriteDownTestSuite) SetupTest() {
 
 func (suite *WriteDownTestSuite) TearDownTest() {
 	suite.conn.Close()
-}
-
-func (suite *WriteDownTestSuite) mockToken(req *http.Request) {
-	userInput := &user.RegisterInput{
-		Name:     "Carlos",
-		Email:    "carlos@wishtrack.com",
-		Password: "12345678",
-	}
-
-	loginInput := &user.LoginInput{
-		Email:    userInput.Email,
-		Password: userInput.Password,
-	}
-
-	ctx := context.Background()
-	_, err := suite.userService.Register(ctx, userInput)
-	suite.Assert().Nil(err, "Should register user")
-
-	token, err := suite.userService.Login(ctx, loginInput)
-	suite.Assert().Nil(err, "Should login")
-
-	req.Header.Add("Authorization", "Bearer "+token.Token)
 }
 
 func (suite *WriteDownTestSuite) TestShouldFailToWriteDownWithoutName() {
