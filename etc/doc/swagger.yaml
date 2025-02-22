@@ -100,57 +100,7 @@ info:
   title: WishTrack API
   version: "1.0"
 paths:
-  /login:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: User credentials
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/user.LoginInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: token
-          schema:
-            $ref: '#/definitions/user.LoginOutput'
-        "401":
-          description: Invalid credentials
-          schema:
-            type: string
-      summary: Login
-      tags:
-      - user
-  /register:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: User information for registration
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/user.RegisterInput'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/user.RegisterOutput'
-        "422":
-          description: Validation Errors
-          schema:
-            $ref: '#/definitions/validation.ErrorCollection'
-      summary: Creates a new user
-      tags:
-      - user
-  /write-down:
+  /contents/write-down:
     post:
       consumes:
       - application/json
@@ -177,6 +127,56 @@ paths:
       summary: Writes Down a content
       tags:
       - content
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            $ref: '#/definitions/user.LoginOutput'
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - user
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User information for registration
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegisterInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.RegisterOutput'
+        "422":
+          description: Validation Errors
+          schema:
+            $ref: '#/definitions/validation.ErrorCollection'
+      summary: Creates a new user
+      tags:
+      - user
 securityDefinitions:
   ApiKeyAuth:
     in: header

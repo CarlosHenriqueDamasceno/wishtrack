@@ -1,0 +1,16 @@
+package server
+
+import (
+	"fmt"
+
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+)
+
+func (a *Api) setupRoutes() {
+	docsUrl := fmt.Sprintf("%s/swagger/doc.json", a.config.Address)
+	a.router.Handle("GET /swagger/*", httpSwagger.Handler(httpSwagger.URL(docsUrl)))
+
+	a.router.HandleFunc("POST /api/v1/users/register", a.handleRegister)
+	a.router.HandleFunc("POST /api/v1/users/login", a.handleLogin)
+	a.router.HandleFunc("POST /api/v1/contents/write-down", a.AuthTokenMiddleware(a.handleWriteDown))
+}

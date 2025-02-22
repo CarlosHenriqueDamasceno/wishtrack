@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const writeDownBaseUrl = "/api/v1/write-down"
+const writeDownBaseUrl = "/api/v1/contents/write-down"
 
 type WriteDownTestSuite struct {
 	suite.Suite

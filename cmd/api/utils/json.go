@@ -2,14 +2,17 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
 
+var ErrParsingError = errors.New("failed to decode JSON")
+
 func ReceiveJSON[T any](r *http.Request) (T, error) {
 	var v T
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-		return v, fmt.Errorf("decode json: %w", err)
+		return v, fmt.Errorf(err.Error()+". error: %w", ErrParsingError)
 	}
 	return v, nil
 }

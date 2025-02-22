@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	loginBaseUrl    = "/api/v1/login"
+	loginBaseUrl    = "/api/v1/users/login"
 	secret          = "ff1feb0beced46fc8ae6f662f7846eb2"
 	aud             = "wishtrack"
 	tokenExpiration = time.Minute

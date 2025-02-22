@@ -22,7 +22,51 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/login": {
+        "/contents/write-down": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "content"
+                ],
+                "summary": "Writes Down a content",
+                "parameters": [
+                    {
+                        "description": "Content info",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/content.WriteDownInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Content Details",
+                        "schema": {
+                            "$ref": "#/definitions/content.WriteDownOutput"
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/validation.ErrorCollection"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -61,7 +105,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/register": {
+        "/users/register": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -93,50 +137,6 @@ const docTemplate = `{
                     },
                     "422": {
                         "description": "Validation Errors",
-                        "schema": {
-                            "$ref": "#/definitions/validation.ErrorCollection"
-                        }
-                    }
-                }
-            }
-        },
-        "/write-down": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "content"
-                ],
-                "summary": "Writes Down a content",
-                "parameters": [
-                    {
-                        "description": "Content info",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/content.WriteDownInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Content Details",
-                        "schema": {
-                            "$ref": "#/definitions/content.WriteDownOutput"
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error",
                         "schema": {
                             "$ref": "#/definitions/validation.ErrorCollection"
                         }

@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const registerBaseUrl = "/api/v1/register"
+const registerBaseUrl = "/api/v1/users/register"
 
 type RegisterTestSuite struct {
 	suite.Suite
