@@ -38,7 +38,7 @@ func (s *service) WriteDown(ctx context.Context, input *WriteDownInput) (*WriteD
 		input.UserID,
 	)
 
-	err := s.validate(content)
+	err := s.validateWriteDown(content)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *service) WriteDown(ctx context.Context, input *WriteDownInput) (*WriteD
 	return outputFromContent(content), nil
 }
 
-func (s *service) validate(content *Content) error {
+func (s *service) validateWriteDown(content *Content) error {
 	var errors validation.ErrorCollection
 
 	if err := content.Name.validate(); err != nil {

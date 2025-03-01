@@ -48,12 +48,12 @@ func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
 			return ErrDuplicateEmail
 		}
-		return database.WrapMysqlError(err)
+		return database.ParseDatabaseError(err)
 	}
 
 	persistedUser, err := r.Find(ctx, user.ID)
 	if err != nil {
-		return database.WrapMysqlError(err)
+		return database.ParseDatabaseError(err)
 	}
 
 	user.CreatedAt = persistedUser.CreatedAt
@@ -83,7 +83,7 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, err
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, database.WrapMysqlError(err)
+		return nil, database.ParseDatabaseError(err)
 	}
 
 	return user, nil
@@ -98,7 +98,7 @@ func (r *DatabaseRepository) IsEmailAlreadyTaken(ctx context.Context, email Emai
 	count := 0
 	err := r.connection.QueryRowContext(ctx, query, email).Scan(&count)
 	if err != nil {
-		return false, database.WrapMysqlError(err)
+		return false, database.ParseDatabaseError(err)
 	}
 
 	return count > 0, nil
@@ -129,7 +129,7 @@ func (r *DatabaseRepository) FindByEmail(ctx context.Context, email string) (*Us
 		case sql.ErrNoRows:
 			return nil, ErrUserNotFound
 		default:
-			return nil, database.WrapMysqlError(err)
+			return nil, database.ParseDatabaseError(err)
 		}
 	}
 

@@ -1,5 +1,43 @@
 basePath: /api/v1
 definitions:
+  content.EditContentInput:
+    properties:
+      category:
+        type: string
+      genres:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      summary:
+        type: string
+      userID:
+        type: string
+      wish_level:
+        type: integer
+    type: object
+  content.EditContentOutput:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      summary:
+        type: string
+      updated_at:
+        type: string
+      wish_level:
+        type: integer
+    type: object
   content.WriteDownInput:
     properties:
       category:
@@ -121,6 +159,38 @@ info:
   title: WishTrack API
   version: "1.0"
 paths:
+  /contents/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Content info
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/content.EditContentInput'
+      - description: Content ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Content Details
+          schema:
+            $ref: '#/definitions/content.EditContentOutput'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/validation.ErrorCollection'
+      security:
+      - ApiKeyAuth: []
+      summary: Edits a content
+      tags:
+      - content
   /contents/feed:
     get:
       consumes:

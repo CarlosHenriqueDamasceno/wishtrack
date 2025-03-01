@@ -11,31 +11,41 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const (
+	DefaultUserEmail = "carlos@wishtrack.com"
+	DefaultPassword  = "12345678"
+)
+
 type LoggedRequestBaseSuite struct {
 	suite.Suite
 	conn           *sql.DB
 	server         *server.Api
 	userService    user.Service
 	contentService content.Service
+	user           *user.RegisterOutput
 }
 
-func (suite *LoggedRequestBaseSuite) mockToken(req *http.Request) {
+func (suite *LoggedRequestBaseSuite) mockUser(email, password string) {
+
 	userInput := &user.RegisterInput{
 		Name:     "Carlos",
-		Email:    "carlos@wishtrack.com",
-		Password: "12345678",
-	}
-
-	loginInput := &user.LoginInput{
-		Email:    userInput.Email,
-		Password: userInput.Password,
+		Email:    email,
+		Password: password,
 	}
 
 	ctx := context.Background()
-	_, err := suite.userService.Register(ctx, userInput)
+	registeredUser, err := suite.userService.Register(ctx, userInput)
 	suite.Assert().Nil(err, "Should register user")
+	suite.user = registeredUser
+}
 
-	token, err := suite.userService.Login(ctx, loginInput)
+func (suite *LoggedRequestBaseSuite) mockToken(email, password string, req *http.Request) {
+	loginInput := &user.LoginInput{
+		Email:    email,
+		Password: password,
+	}
+
+	token, err := suite.userService.Login(context.Background(), loginInput)
 	suite.Assert().Nil(err, "Should login")
 
 	req.Header.Add("Authorization", "Bearer "+token.Token)

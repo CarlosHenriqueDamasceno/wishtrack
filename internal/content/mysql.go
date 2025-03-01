@@ -45,12 +45,12 @@ func (r *DatabaseRepository) Create(ctx context.Context, content *Content) error
 		content.UserID,
 	)
 	if err != nil {
-		return database.WrapMysqlError(err)
+		return database.ParseDatabaseError(err)
 	}
 
 	persistedContent, err := r.Find(ctx, content.ID)
 	if err != nil {
-		return database.WrapMysqlError(err)
+		return database.ParseDatabaseError(err)
 	}
 
 	content.CreatedAt = persistedContent.CreatedAt
@@ -85,7 +85,7 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*Content, 
 		&content.UpdatedAt,
 	)
 	if err != nil {
-		return nil, database.WrapMysqlError(err)
+		return nil, database.ParseDatabaseError(err)
 	}
 
 	content.Genres = strings.Split(genres, "|")
@@ -106,7 +106,7 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 
 	rows, err := r.connection.QueryContext(ctx, query, userId)
 	if err != nil {
-		return nil, database.WrapMysqlError(err)
+		return nil, database.ParseDatabaseError(err)
 	}
 
 	var feed []*Content
@@ -127,7 +127,7 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 			&content.UpdatedAt,
 		)
 		if err != nil {
-			return nil, database.WrapMysqlError(err)
+			return nil, database.ParseDatabaseError(err)
 		}
 
 		content.Genres = strings.Split(genres, "|")
@@ -136,4 +136,33 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 	}
 
 	return feed, nil
+}
+
+func (r *DatabaseRepository) Update(ctx context.Context, content *Content) error {
+	query := `UPDATE contents
+				SET name = ?, category = ?, genres = ?, summary = ?, wish_level = ?, updated_at = ?
+				WHERE id = ?`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
+	defer cancel()
+
+	updatedAt := time.Now()
+
+	_, err := r.connection.ExecContext(
+		ctx,
+		query,
+		content.Name,
+		content.Category,
+		strings.Join(content.Genres, "|"),
+		content.Summary,
+		content.WishLevel,
+		updatedAt,
+		content.ID,
+	)
+	if err != nil {
+		return database.ParseDatabaseError(err)
+	}
+
+	content.UpdatedAt = updatedAt
+	return nil
 }

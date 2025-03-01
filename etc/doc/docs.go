@@ -102,6 +102,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/contents/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "content"
+                ],
+                "summary": "Edits a content",
+                "parameters": [
+                    {
+                        "description": "Content info",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/content.EditContentInput"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Content ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Content Details",
+                        "schema": {
+                            "$ref": "#/definitions/content.EditContentOutput"
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/validation.ErrorCollection"
+                        }
+                    }
+                }
+            }
+        },
         "/users/login": {
             "post": {
                 "consumes": [
@@ -182,6 +233,64 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "content.EditContentInput": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                },
+                "wish_level": {
+                    "type": "integer"
+                }
+            }
+        },
+        "content.EditContentOutput": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "wish_level": {
+                    "type": "integer"
+                }
+            }
+        },
         "content.WriteDownInput": {
             "type": "object",
             "properties": {

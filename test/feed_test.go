@@ -44,6 +44,8 @@ func (suite *FeedTestSuite) SetupTest() {
 		suite.userService,
 		suite.contentService,
 	)
+
+	suite.mockUser(DefaultUserEmail, DefaultPassword)
 }
 
 func (suite *FeedTestSuite) TearDownTest() {
@@ -60,6 +62,7 @@ func (suite *FeedTestSuite) mockContents() []*content.WriteDownOutput {
 		Genres:    []string{"fantasy", "adventure"},
 		Summary:   "The third movie from the series The Lord of The Rings",
 		WishLevel: 5,
+		UserID:    suite.user.ID,
 	}
 
 	lessWished := &content.WriteDownInput{
@@ -69,6 +72,7 @@ func (suite *FeedTestSuite) mockContents() []*content.WriteDownOutput {
 		Summary: `Inspired by the books of Stephen E. Ambrose and accounts of multiple soldiers in a single
 		family, such as the Niland brothers, being killed in action`,
 		WishLevel: 2,
+		UserID:    suite.user.ID,
 	}
 
 	out, err := suite.contentService.WriteDown(ctx, lessWished)
@@ -87,7 +91,7 @@ func (suite *FeedTestSuite) TestGetFeed() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, feedBaseUrl, nil)
-	suite.mockToken(req)
+	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)

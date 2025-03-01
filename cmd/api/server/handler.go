@@ -9,6 +9,7 @@ import (
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/validation"
+	"github.com/google/uuid"
 )
 
 // Register godoc
@@ -124,6 +125,46 @@ func (api *Api) handleFeed(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(out, http.StatusOK, w)
 }
 
+// Write Down godoc
+//
+//	@Summary	Edits a content
+//	@Tags		content
+//	@Accept		json
+//	@Produce	json
+//	@Param		payload	body		content.EditContentInput	true	"Content info"
+//	@Param		id		path		string						true	"Content ID"
+//	@Success	201		{object}	content.EditContentOutput	"Content Details"
+//	@Failure	422		{object}	validation.ErrorCollection	"Validation error"
+//	@Router		/contents/{id} [put]
+//	@Security	ApiKeyAuth
+func (api *Api) handleContentEdit(w http.ResponseWriter, r *http.Request) {
+	input, err := utils.ReceiveJSON[*content.EditContentInput](r)
+	if err != nil {
+		api.handleError(w, r, "failed to decode edit content input", err)
+		return
+	}
+
+	user, err := api.GetLoggedUser(w, r)
+	if err != nil {
+		api.handleError(w, r, "invalid token", err)
+		return
+	}
+	input.UserID = user.ID
+
+	input.ID, err = uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		api.handleError(w, r, "invalid uuid for editing content", utils.NewParsingError(err))
+	}
+
+	out, err := api.contentService.Edit(r.Context(), input)
+	if err != nil {
+		api.handleError(w, r, "error editing content", err)
+		return
+	}
+
+	utils.RespondJSON(out, http.StatusOK, w)
+}
+
 func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage string, err error) {
 	if _, ok := err.(validation.ErrorCollection); ok {
 		api.logger.Info("validation error", "error", err)
@@ -136,6 +177,8 @@ func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage s
 		switch {
 		case errors.Is(err, user.ErrIncorrectCredentials):
 			utils.RespondError(err, http.StatusUnauthorized, w)
+		case errors.Is(err, content.ErrContentNotFound):
+			utils.RespondError(err, http.StatusNotFound, w)
 		case errors.Is(err, utils.ErrParsingError):
 			api.logger.Info(logMessage, "request", requestLog, "error", err.Error())
 			utils.RespondError(errors.Unwrap(err), http.StatusBadRequest, w)

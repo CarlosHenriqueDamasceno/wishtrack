@@ -12,7 +12,7 @@ var ErrParsingError = errors.New("failed to decode JSON")
 func ReceiveJSON[T any](r *http.Request) (T, error) {
 	var v T
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-		return v, fmt.Errorf(err.Error()+". error: %w", ErrParsingError)
+		return v, NewParsingError(err)
 	}
 	return v, nil
 }
@@ -32,4 +32,8 @@ func RespondError(err error, status int, w http.ResponseWriter) {
 		Error: err.Error(),
 	}
 	RespondJSON(errorWrapper, status, w)
+}
+
+func NewParsingError(e error) error {
+	return fmt.Errorf(e.Error()+". error: %w", ErrParsingError)
 }
