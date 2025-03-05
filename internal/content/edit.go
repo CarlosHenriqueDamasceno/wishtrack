@@ -19,7 +19,7 @@ type EditContentInput struct {
 	Genres    []string  `json:"genres"`
 	Summary   string    `json:"summary"`
 	WishLevel int       `json:"wish_level"`
-	UserID    uuid.UUID
+	UserID    uuid.UUID `json:"-"`
 }
 
 type EditContentOutput struct {

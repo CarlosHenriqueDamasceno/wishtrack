@@ -153,6 +153,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/contents/{id}/rate": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "content"
+                ],
+                "summary": "Rate a content",
+                "parameters": [
+                    {
+                        "description": "Rate",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/content.RateContentInput"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Content ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/validation.ErrorCollection"
+                        }
+                    }
+                }
+            }
+        },
         "/users/login": {
             "post": {
                 "consumes": [
@@ -251,9 +299,6 @@ const docTemplate = `{
                 "summary": {
                     "type": "string"
                 },
-                "userID": {
-                    "type": "string"
-                },
                 "wish_level": {
                     "type": "integer"
                 }
@@ -287,6 +332,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "wish_level": {
+                    "type": "integer"
+                }
+            }
+        },
+        "content.RateContentInput": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "rate": {
                     "type": "integer"
                 }
             }

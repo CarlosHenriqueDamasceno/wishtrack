@@ -165,6 +165,46 @@ func (api *Api) handleContentEdit(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(out, http.StatusOK, w)
 }
 
+// Rate content godoc
+//
+//	@Summary	Rate a content
+//	@Tags		content
+//	@Accept		json
+//	@Produce	json
+//	@Param		payload	body	content.RateContentInput	true	"Rate"
+//	@Param		id		path	string						true	"Content ID"
+//	@Success	204
+//	@Failure	422	{object}	validation.ErrorCollection	"Validation error"
+//	@Router		/contents/{id}/rate [post]
+//	@Security	ApiKeyAuth
+func (api *Api) handleRateContent(w http.ResponseWriter, r *http.Request) {
+	input, err := utils.ReceiveJSON[*content.RateContentInput](r)
+	if err != nil {
+		api.handleError(w, r, "failed to decode rate content input", err)
+		return
+	}
+
+	user, err := api.GetLoggedUser(w, r)
+	if err != nil {
+		api.handleError(w, r, "invalid token", err)
+		return
+	}
+	input.UserID = user.ID
+
+	input.ID, err = uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		api.handleError(w, r, "invalid uuid for rating content", utils.NewParsingError(err))
+	}
+
+	err = api.contentService.Rate(r.Context(), input)
+	if err != nil {
+		api.handleError(w, r, "error rating content", err)
+		return
+	}
+
+	utils.RespondJSON(nil, http.StatusNoContent, w)
+}
+
 func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage string, err error) {
 	if _, ok := err.(validation.ErrorCollection); ok {
 		api.logger.Info("validation error", "error", err)

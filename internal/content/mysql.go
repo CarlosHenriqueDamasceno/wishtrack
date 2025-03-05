@@ -62,7 +62,7 @@ func (r *DatabaseRepository) Create(ctx context.Context, content *Content) error
 func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*Content, error) {
 	query := `
 		SELECT
-			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
+			id, name, category, genres, summary, wish_level, user_id, rate, comment, created_at, updated_at
 		FROM contents
 		WHERE id = ?
 	`
@@ -81,6 +81,8 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*Content, 
 		&content.Summary,
 		&content.WishLevel,
 		&content.UserID,
+		&content.Rate,
+		&content.Comment,
 		&content.CreatedAt,
 		&content.UpdatedAt,
 	)
@@ -140,7 +142,7 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 
 func (r *DatabaseRepository) Update(ctx context.Context, content *Content) error {
 	query := `UPDATE contents
-				SET name = ?, category = ?, genres = ?, summary = ?, wish_level = ?, updated_at = ?
+				SET name = ?, category = ?, genres = ?, summary = ?, wish_level = ?, rate = ?, comment = ?, updated_at = ?
 				WHERE id = ?`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
@@ -156,6 +158,8 @@ func (r *DatabaseRepository) Update(ctx context.Context, content *Content) error
 		strings.Join(content.Genres, "|"),
 		content.Summary,
 		content.WishLevel,
+		content.Rate,
+		content.Comment,
 		updatedAt,
 		content.ID,
 	)

@@ -12,8 +12,6 @@ definitions:
         type: string
       summary:
         type: string
-      userID:
-        type: string
       wish_level:
         type: integer
     type: object
@@ -36,6 +34,13 @@ definitions:
       updated_at:
         type: string
       wish_level:
+        type: integer
+    type: object
+  content.RateContentInput:
+    properties:
+      comment:
+        type: string
+      rate:
         type: integer
     type: object
   content.WriteDownInput:
@@ -189,6 +194,36 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Edits a content
+      tags:
+      - content
+  /contents/{id}/rate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Rate
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/content.RateContentInput'
+      - description: Content ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/validation.ErrorCollection'
+      security:
+      - ApiKeyAuth: []
+      summary: Rate a content
       tags:
       - content
   /contents/feed:

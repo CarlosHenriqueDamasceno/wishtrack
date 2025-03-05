@@ -40,6 +40,19 @@ func (wl *WishLevel) validate() *validation.ValidationError {
 	return nil
 }
 
+type Rate int
+
+func (wl *Rate) validate() *validation.ValidationError {
+	if int(*wl) < 1 || int(*wl) > 5 {
+		return &validation.ValidationError{
+			Field:   "rate",
+			Message: "field \"rate\" must be between 1 and 5",
+		}
+	}
+
+	return nil
+}
+
 type Content struct {
 	ID        uuid.UUID
 	Name      Name
@@ -48,6 +61,8 @@ type Content struct {
 	Summary   string
 	WishLevel WishLevel
 	UserID    uuid.UUID
+	Rate      *Rate
+	Comment   *string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
