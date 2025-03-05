@@ -6,11 +6,13 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 	"time"
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/server"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
+	"github.com/stretchr/testify/suite"
 )
 
 const feedBaseUrl = "/api/v1/contents/feed"
@@ -112,5 +114,9 @@ func (suite *FeedTestSuite) TestGetFeed() {
 
 	suite.Assert().Equal(len(contents), len(responseBody))
 
-	suite.Assert().Equal(contents[1].ID, responseBody[0].ID)
+	suite.Assert().Equal(contents[1].ID.String(), responseBody[0].ID)
+}
+
+func TestFeedTestSuite(t *testing.T) {
+	suite.Run(t, new(FeedTestSuite))
 }
