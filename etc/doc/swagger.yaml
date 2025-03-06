@@ -36,6 +36,31 @@ definitions:
       wish_level:
         type: integer
     type: object
+  content.FindContentOutput:
+    properties:
+      category:
+        type: string
+      comment:
+        type: string
+      created_at:
+        type: string
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      rate:
+        type: integer
+      summary:
+        type: string
+      updated_at:
+        type: string
+      wish_level:
+        type: integer
+    type: object
   content.RateContentInput:
     properties:
       comment:
@@ -165,6 +190,31 @@ info:
   version: "1.0"
 paths:
   /contents/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Content ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Content info
+          schema:
+            $ref: '#/definitions/content.FindContentOutput'
+        "404":
+          description: Content not found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: finds a content
+      tags:
+      - content
     put:
       consumes:
       - application/json

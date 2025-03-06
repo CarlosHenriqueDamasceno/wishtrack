@@ -97,6 +97,46 @@
             }
         },
         "/contents/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "content"
+                ],
+                "summary": "finds a content",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Content ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Content info",
+                        "schema": {
+                            "$ref": "#/definitions/content.FindContentOutput"
+                        }
+                    },
+                    "404": {
+                        "description": "Content not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -318,6 +358,44 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "wish_level": {
+                    "type": "integer"
+                }
+            }
+        },
+        "content.FindContentOutput": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rate": {
+                    "type": "integer"
                 },
                 "summary": {
                     "type": "string"

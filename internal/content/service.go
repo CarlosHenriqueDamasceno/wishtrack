@@ -11,6 +11,7 @@ type Service interface {
 	Feed(context.Context, uuid.UUID) (*FeedOutput, error)
 	Edit(context.Context, *EditContentInput) (*EditContentOutput, error)
 	Rate(context.Context, *RateContentInput) error
+	Find(context.Context, uuid.UUID, uuid.UUID) (*FindContentOutput, error)
 }
 
 type service struct {
