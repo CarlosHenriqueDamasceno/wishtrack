@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/utils"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/validation"
@@ -23,7 +22,7 @@ import (
 //	@Failure	422		{object}	validation.ErrorCollection	"Validation Errors"
 //	@Router		/users/register [post]
 func (api *Api) handleRegister(w http.ResponseWriter, r *http.Request) {
-	input, err := utils.ReceiveJSON[*user.RegisterInput](r)
+	input, err := ReceiveJSON[*user.RegisterInput](r)
 	if err != nil {
 		api.handleError(w, r, "failed to decode register input", err)
 		return
@@ -35,7 +34,7 @@ func (api *Api) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(out, http.StatusCreated, w)
+	RespondJSON(out, http.StatusCreated, w)
 }
 
 // Register godoc
@@ -49,7 +48,7 @@ func (api *Api) handleRegister(w http.ResponseWriter, r *http.Request) {
 //	@Failure	401		{string}	string				"Invalid credentials"
 //	@Router		/users/login [post]
 func (api *Api) handleLogin(w http.ResponseWriter, r *http.Request) {
-	input, err := utils.ReceiveJSON[*user.LoginInput](r)
+	input, err := ReceiveJSON[*user.LoginInput](r)
 	if err != nil {
 		api.handleError(w, r, "failed to decode login input", err)
 		return
@@ -61,7 +60,7 @@ func (api *Api) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(out, http.StatusOK, w)
+	RespondJSON(out, http.StatusOK, w)
 }
 
 // Write Down godoc
@@ -76,7 +75,7 @@ func (api *Api) handleLogin(w http.ResponseWriter, r *http.Request) {
 //	@Router		/contents/write-down [post]
 //	@Security	ApiKeyAuth
 func (api *Api) handleWriteDown(w http.ResponseWriter, r *http.Request) {
-	input, err := utils.ReceiveJSON[*content.WriteDownInput](r)
+	input, err := ReceiveJSON[*content.WriteDownInput](r)
 	if err != nil {
 		api.handleError(w, r, "failed to decode write down input", err)
 		return
@@ -96,7 +95,7 @@ func (api *Api) handleWriteDown(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(out, http.StatusCreated, w)
+	RespondJSON(out, http.StatusCreated, w)
 }
 
 // Feed godoc
@@ -122,7 +121,7 @@ func (api *Api) handleFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(out, http.StatusOK, w)
+	RespondJSON(out, http.StatusOK, w)
 }
 
 // Write Down godoc
@@ -138,7 +137,7 @@ func (api *Api) handleFeed(w http.ResponseWriter, r *http.Request) {
 //	@Router		/contents/{id} [put]
 //	@Security	ApiKeyAuth
 func (api *Api) handleContentEdit(w http.ResponseWriter, r *http.Request) {
-	input, err := utils.ReceiveJSON[*content.EditContentInput](r)
+	input, err := ReceiveJSON[*content.EditContentInput](r)
 	if err != nil {
 		api.handleError(w, r, "failed to decode edit content input", err)
 		return
@@ -153,7 +152,7 @@ func (api *Api) handleContentEdit(w http.ResponseWriter, r *http.Request) {
 
 	input.ID, err = uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		api.handleError(w, r, "invalid uuid for editing content", utils.NewParsingError(err))
+		api.handleError(w, r, "invalid uuid for editing content", NewParsingError(err))
 	}
 
 	out, err := api.contentService.Edit(r.Context(), input)
@@ -162,7 +161,7 @@ func (api *Api) handleContentEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(out, http.StatusOK, w)
+	RespondJSON(out, http.StatusOK, w)
 }
 
 // Rate content godoc
@@ -178,7 +177,7 @@ func (api *Api) handleContentEdit(w http.ResponseWriter, r *http.Request) {
 //	@Router		/contents/{id}/rate [post]
 //	@Security	ApiKeyAuth
 func (api *Api) handleRateContent(w http.ResponseWriter, r *http.Request) {
-	input, err := utils.ReceiveJSON[*content.RateContentInput](r)
+	input, err := ReceiveJSON[*content.RateContentInput](r)
 	if err != nil {
 		api.handleError(w, r, "failed to decode rate content input", err)
 		return
@@ -193,7 +192,7 @@ func (api *Api) handleRateContent(w http.ResponseWriter, r *http.Request) {
 
 	input.ID, err = uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		api.handleError(w, r, "invalid uuid for rating content", utils.NewParsingError(err))
+		api.handleError(w, r, "invalid uuid for rating content", NewParsingError(err))
 	}
 
 	err = api.contentService.Rate(r.Context(), input)
@@ -202,7 +201,7 @@ func (api *Api) handleRateContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(nil, http.StatusNoContent, w)
+	RespondJSON(nil, http.StatusNoContent, w)
 }
 
 // Find content godoc
@@ -225,7 +224,7 @@ func (api *Api) handleFindContent(w http.ResponseWriter, r *http.Request) {
 
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		api.handleError(w, r, "invalid uuid for finding a content", utils.NewParsingError(err))
+		api.handleError(w, r, "invalid uuid for finding a content", NewParsingError(err))
 	}
 
 	out, err := api.contentService.Find(r.Context(), id, user.ID)
@@ -234,7 +233,7 @@ func (api *Api) handleFindContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(out, http.StatusOK, w)
+	RespondJSON(out, http.StatusOK, w)
 }
 
 // Delete a content godoc
@@ -257,7 +256,7 @@ func (api *Api) handleDeleteContent(w http.ResponseWriter, r *http.Request) {
 
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		api.handleError(w, r, "invalid uuid for deleting a content", utils.NewParsingError(err))
+		api.handleError(w, r, "invalid uuid for deleting a content", NewParsingError(err))
 	}
 
 	err = api.contentService.Delete(r.Context(), id, user.ID)
@@ -266,13 +265,13 @@ func (api *Api) handleDeleteContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondJSON(nil, http.StatusNoContent, w)
+	RespondJSON(nil, http.StatusNoContent, w)
 }
 
 func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage string, err error) {
 	if _, ok := err.(validation.ErrorCollection); ok {
 		api.logger.Info("validation error", "error", err)
-		utils.RespondJSON(err, http.StatusUnprocessableEntity, w)
+		RespondJSON(err, http.StatusUnprocessableEntity, w)
 		return
 	}
 
@@ -280,15 +279,15 @@ func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage s
 		requestLog := fmt.Sprintf("[Path]: %s [Method]: %s", r.URL.Path, r.Method)
 		switch {
 		case errors.Is(err, user.ErrIncorrectCredentials):
-			utils.RespondError(err, http.StatusUnauthorized, w)
+			RespondError(err, http.StatusUnauthorized, w)
 		case errors.Is(err, content.ErrContentNotFound):
-			utils.RespondError(err, http.StatusNotFound, w)
-		case errors.Is(err, utils.ErrParsingError):
+			RespondError(err, http.StatusNotFound, w)
+		case errors.Is(err, ErrParsingError):
 			api.logger.Info(logMessage, "request", requestLog, "error", err.Error())
-			utils.RespondError(errors.Unwrap(err), http.StatusBadRequest, w)
+			RespondError(errors.Unwrap(err), http.StatusBadRequest, w)
 		default:
 			api.logger.Error(logMessage, "request", requestLog, "error", err.Error())
-			utils.RespondError(err, http.StatusInternalServerError, w)
+			RespondError(err, http.StatusInternalServerError, w)
 		}
 	}
 }
