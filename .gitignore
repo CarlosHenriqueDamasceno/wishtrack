@@ -1,4 +1,4 @@
 *.sqlite
 /etc/bin
-etc/doc
+/etc/doc
 .env
