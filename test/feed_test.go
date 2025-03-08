@@ -117,6 +117,34 @@ func (suite *FeedTestSuite) TestGetFeed() {
 	suite.Assert().Equal(contents[1].ID.String(), responseBody[0].ID)
 }
 
+func (suite *FeedTestSuite) TestFeedShouldNotIncludeRatedContents() {
+	contents := suite.mockContents()
+
+	input := &content.RateContentInput{
+		ID:      contents[0].ID,
+		UserID:  suite.user.ID,
+		Rate:    5,
+		Comment: "Absolute Cinema!!!!",
+	}
+
+	err := suite.contentService.Rate(context.Background(), input)
+	suite.Assert().Nil(err)
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, feedBaseUrl, nil)
+	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+
+	suite.server.ServeHTTP(recorder, req)
+	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
+
+	responseBody := []struct{}{}
+
+	err = json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
+	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
+
+	suite.Assert().Equal(1, len(responseBody))
+}
+
 func TestFeedTestSuite(t *testing.T) {
 	suite.Run(t, new(FeedTestSuite))
 }

@@ -114,7 +114,7 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 		SELECT
 			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
 		FROM contents
-		WHERE user_id = ? ORDER BY wish_level DESC LIMIT 5
+		WHERE user_id = ? AND rate IS NULL ORDER BY wish_level DESC LIMIT 5
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
