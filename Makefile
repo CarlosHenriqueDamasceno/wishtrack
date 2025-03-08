@@ -33,4 +33,4 @@ gen-docs:
 
 .PHONY: dev
 dev:
-	@air
+	@docker compose up -d && air
