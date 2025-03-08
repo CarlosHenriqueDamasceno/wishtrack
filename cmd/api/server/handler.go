@@ -225,16 +225,48 @@ func (api *Api) handleFindContent(w http.ResponseWriter, r *http.Request) {
 
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		api.handleError(w, r, "invalid uuid for rating content", utils.NewParsingError(err))
+		api.handleError(w, r, "invalid uuid for finding a content", utils.NewParsingError(err))
 	}
 
 	out, err := api.contentService.Find(r.Context(), id, user.ID)
 	if err != nil {
-		api.handleError(w, r, "error rating content", err)
+		api.handleError(w, r, "error finding a content", err)
 		return
 	}
 
 	utils.RespondJSON(out, http.StatusOK, w)
+}
+
+// Delete a content godoc
+//
+//	@Summary	deletes a content
+//	@Tags		content
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		string	true	"Content ID"
+//	@Success	204	{object}	string
+//	@Failure	404	{string}	string	"Content not found"
+//	@Router		/contents/{id} [delete]
+//	@Security	ApiKeyAuth
+func (api *Api) handleDeleteContent(w http.ResponseWriter, r *http.Request) {
+	user, err := api.GetLoggedUser(w, r)
+	if err != nil {
+		api.handleError(w, r, "invalid token", err)
+		return
+	}
+
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		api.handleError(w, r, "invalid uuid for deleting a content", utils.NewParsingError(err))
+	}
+
+	err = api.contentService.Delete(r.Context(), id, user.ID)
+	if err != nil {
+		api.handleError(w, r, "error deleting a content", err)
+		return
+	}
+
+	utils.RespondJSON(nil, http.StatusNoContent, w)
 }
 
 func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage string, err error) {

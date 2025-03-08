@@ -95,6 +95,20 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*Content, 
 	return content, nil
 }
 
+func (r *DatabaseRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM contents WHERE id = ?`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
+	defer cancel()
+
+	_, err := r.connection.ExecContext(ctx, query, id)
+	if err != nil {
+		return database.ParseDatabaseError(err)
+	}
+
+	return nil
+}
+
 func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Content, error) {
 	query := `
 		SELECT

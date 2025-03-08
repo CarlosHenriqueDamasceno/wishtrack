@@ -11,4 +11,5 @@ type Repository interface {
 	Find(context.Context, uuid.UUID) (*Content, error)
 	Feed(context.Context, uuid.UUID) ([]*Content, error)
 	Update(context.Context, *Content) error
+	Delete(context.Context, uuid.UUID) error
 }

@@ -17,5 +17,6 @@ func (a *Api) setupRoutes() {
 	a.router.HandleFunc("GET /api/v1/contents/feed", a.AuthTokenMiddleware(a.handleFeed))
 	a.router.HandleFunc("PUT /api/v1/contents/{id}", a.AuthTokenMiddleware(a.handleContentEdit))
 	a.router.HandleFunc("GET /api/v1/contents/{id}", a.AuthTokenMiddleware(a.handleFindContent))
+	a.router.HandleFunc("DELETE /api/v1/contents/{id}", a.AuthTokenMiddleware(a.handleDeleteContent))
 	a.router.HandleFunc("POST /api/v1/contents/{id}/rate", a.AuthTokenMiddleware(a.handleRateContent))
 }
