@@ -1,8 +1,10 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -19,4 +21,24 @@ func ParseDatabaseError(err error) error {
 	}
 
 	return err
+}
+
+func New(addr string, maxOpenConns, maxIdleConns int, maxIdleTime time.Duration) (*sql.DB, error) {
+	db, err := sql.Open("mysql", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	db.SetMaxOpenConns(maxOpenConns)
+	db.SetMaxIdleConns(maxIdleConns)
+	db.SetConnMaxIdleTime(maxIdleTime)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err = db.PingContext(ctx); err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

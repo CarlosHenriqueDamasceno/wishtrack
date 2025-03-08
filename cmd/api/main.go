@@ -1,30 +1,85 @@
 package main
 
 import (
-	"database/sql"
+	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/server"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/database"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
 
 func run(conf *server.Config, logger *slog.Logger) error {
+	conn, err := database.New(
+		conf.Database.Dsn,
+		conf.Database.MaxOpenConns,
+		conf.Database.MaxIdleConns,
+		conf.Database.MaxIdleTime,
+	)
+	if err != nil {
+		return err
+	}
+
+	conf.SetDatabaseConnection(conn)
+
+	logger.Info("Database connection established.")
+
 	userRepository := user.NewDatabaseRepository(conf.Database.Conn)
 	contentRepository := content.NewDatabaseRepository(conf.Database.Conn)
 	jwtAuth := user.NewJwtAuthenticator(conf.Auth.Key, conf.Auth.Iss, conf.Auth.Aud, conf.Auth.Exp)
 	userService := user.NewService(userRepository, jwtAuth)
 	contentService := content.NewService(contentRepository)
+
 	api := server.NewApi(http.NewServeMux(), conf, logger, userService, contentService)
 	server := http.Server{
-		Addr:    conf.Address,
-		Handler: api,
+		Addr:         conf.Address,
+		Handler:      api,
+		WriteTimeout: time.Second * 30,
+		ReadTimeout:  time.Second * 10,
+		IdleTimeout:  time.Minute,
 	}
-	return server.ListenAndServe()
+
+	shutdown := make(chan error)
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		s := <-quit
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		logger.Info("signal caught", "signal", s.String())
+
+		shutdown <- server.Shutdown(ctx)
+	}()
+
+	logger.Info("server has started", "addr", conf.Address, "env", conf.Env)
+
+	err = server.ListenAndServe()
+
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	err = <-shutdown
+	if err != nil {
+		return err
+	}
+
+	logger.Info("server has stopped", "addr", conf.Address, "env", conf.Env)
+
+	return nil
 }
 
 // @title						WishTrack API
@@ -53,17 +108,8 @@ func main() {
 
 	config := server.LoadEnv()
 
-	conn, err := sql.Open("mysql", config.Database.Dsn)
-	if err != nil {
-		logger.Error("Database connection fail", "error", err.Error())
-	}
-	defer conn.Close()
-
-	config.SetDatabaseConnection(conn)
-
-	logger.Info("Database connection established.")
-
 	if err := run(config, logger); err != nil {
 		logger.Error("Server error", "error", err.Error())
+		os.Exit(1)
 	}
 }
