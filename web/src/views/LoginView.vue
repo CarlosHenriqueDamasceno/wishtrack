@@ -10,7 +10,7 @@ const store = useLoginStore()
 const router = useRouter()
 
 async function login() {
-  const res = await fetch('http://localhost:8080/api/v1/users/login', {
+  const res = await fetch(import.meta.env.VITE_API_URL + '/users/login', {
     method: 'POST',
     headers: {
       "Content-Type": "application/json",
@@ -41,14 +41,14 @@ async function login() {
       </div>
       <form @submit.prevent="login">
         <div class="mb-4">
-          <label class="block text-gray-400 mb-2" for="email">Email</label>
-          <input class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            type="email" id="email" v-model="email" required>
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="email">Your e-mail</label>
+          <input class="border text-sm rounded-lg block w-full p-2.5 bg-gray-600 border-gray-500 placeholder-gray-400 text-white"
+            type="email" id="email" v-model="email" placeholder="name@company.com" required>
         </div>
         <div class="mb-6">
-          <label class="block text-gray-400 mb-2" for="password">Password</label>
-          <input class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            type="password" id="password" v-model="password" required>
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="password">Your password</label>
+          <input class="border text-sm rounded-lg block w-full p-2.5 bg-gray-600 border-gray-500 placeholder-gray-400 text-white"
+            type="password" id="password" v-model="password" placeholder="••••••••" required>
         </div>
         <button
           class="cursor-pointer w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"

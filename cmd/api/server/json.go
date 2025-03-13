@@ -18,7 +18,6 @@ func ReceiveJSON[T any](r *http.Request) (T, error) {
 }
 
 func RespondJSON(body any, status int, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	err := json.NewEncoder(w).Encode(body)
 	if err != nil {
