@@ -31,6 +31,14 @@ migrate-down:
 gen-docs:
 	@swag init -o ./etc/doc -g ./api/main.go -d cmd,internal,pkg && swag fmt
 
+.PHONY: front
+front:
+	@cd web && bun dev --host
+
+.PHONY: back
+back:
+	@air
+
 .PHONY: dev
 dev:
-	@docker compose up -d && air
+	@docker compose up -d && make -j back front

@@ -1,14 +1,29 @@
-import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized, type RouteLocationNormalizedLoaded } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import { useLoginStore } from '@/stores/login'
+import {
+  createRouter,
+  createWebHistory,
+  type NavigationGuardNext,
+  type RouteLocationNormalized,
+  type RouteLocationNormalizedLoaded,
+} from 'vue-router'
+import { useLoginStore } from '@/stores/auth'
 
-const authGuard = (to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded, next: NavigationGuardNext) => {
+const authGuard = (
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalizedLoaded,
+  next: NavigationGuardNext,
+) => {
   const authStore = useLoginStore()
-  if (authStore.isLogged() || to.name === 'login') {
-    next()
-  } else {
+  if (false === authStore.isLogged() && to.name !== 'login') {
     next({ name: 'login' })
+    return
   }
+
+  if (authStore.isLogged() && to.name === 'login') {
+    next({ name: from.name })
+    return
+  }
+
+  next()
 }
 
 const router = createRouter({
@@ -17,12 +32,17 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('../views/HomeView.vue'),
     },
     {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('../views/NotFoundView.vue'),
     },
   ],
 })
