@@ -27,6 +27,33 @@ func (n *Name) validate() *validation.ValidationError {
 	return nil
 }
 
+type Genres []string
+
+func (g Genres) validate() validation.ErrorCollection {
+	var errors validation.ErrorCollection
+	for _, v := range g {
+		if string(v) == "" {
+			err := &validation.ValidationError{
+				Field:   "genre",
+				Message: "field \"genre\" is required",
+			}
+
+			errors.Append(err)
+			continue
+		}
+
+		if len(v) < 3 {
+			err := &validation.ValidationError{
+				Field:   "genre",
+				Message: "field \"genre\" must be at least 3 characters long",
+			}
+
+			errors.Append(err)
+		}
+	}
+	return errors
+}
+
 type WishLevel int
 
 func (wl *WishLevel) validate() *validation.ValidationError {
@@ -57,7 +84,7 @@ type Content struct {
 	ID        uuid.UUID
 	Name      Name
 	Category  string
-	Genres    []string
+	Genres    Genres
 	Summary   string
 	WishLevel WishLevel
 	UserID    uuid.UUID
@@ -67,7 +94,7 @@ type Content struct {
 	UpdatedAt time.Time
 }
 
-func NewContent(name, category string, genres []string, summary string, wishLevel int, userID uuid.UUID) *Content {
+func NewContent(name, category string, genres Genres, summary string, wishLevel int, userID uuid.UUID) *Content {
 	return &Content{
 		ID:        uuid.New(),
 		Name:      Name(name),

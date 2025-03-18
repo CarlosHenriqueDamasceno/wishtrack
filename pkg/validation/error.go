@@ -23,6 +23,19 @@ func (c *ErrorCollection) Append(err *ValidationError) {
 	(*c)[err.Field] = append((*c)[err.Field], err)
 }
 
+func (c *ErrorCollection) AppendCollection(collection *ErrorCollection) {
+	if *c == nil {
+		*c = *collection
+		return
+	}
+
+	for _, errors := range *collection {
+		for _, err := range errors {
+			c.Append(err)
+		}
+	}
+}
+
 func (c *ErrorCollection) WithMessage(field, message string) {
 	c.Append(&ValidationError{
 		Field:   field,

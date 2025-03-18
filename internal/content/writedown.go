@@ -9,11 +9,11 @@ import (
 )
 
 type WriteDownInput struct {
-	Name      string   `json:"name"`
-	Category  string   `json:"category"`
-	Genres    []string `json:"genres"`
-	Summary   string   `json:"summary"`
-	WishLevel int      `json:"wish_level"`
+	Name      string `json:"name"`
+	Category  string `json:"category"`
+	Genres    Genres `json:"genres"`
+	Summary   string `json:"summary"`
+	WishLevel int    `json:"wish_level"`
 	UserID    uuid.UUID
 }
 
@@ -21,7 +21,7 @@ type WriteDownOutput struct {
 	ID        uuid.UUID `json:"id"`
 	Name      Name      `json:"name"`
 	Category  string    `json:"category"`
-	Genres    []string  `json:"genres"`
+	Genres    Genres    `json:"genres"`
 	Summary   string    `json:"summary"`
 	WishLevel WishLevel `json:"wish_level"`
 	CreatedAt time.Time `json:"created_at"`
@@ -53,9 +53,12 @@ func (s *service) WriteDown(ctx context.Context, input *WriteDownInput) (*WriteD
 
 func (s *service) validateWriteDown(content *Content) error {
 	var errors validation.ErrorCollection
-
 	if err := content.Name.validate(); err != nil {
 		errors.Append(err)
+	}
+
+	if genresErrors := content.Genres.validate(); genresErrors.HasError() {
+		errors.AppendCollection(&genresErrors)
 	}
 
 	if err := content.WishLevel.validate(); err != nil {

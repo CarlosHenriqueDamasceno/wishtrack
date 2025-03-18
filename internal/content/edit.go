@@ -16,7 +16,7 @@ type EditContentInput struct {
 	ID        uuid.UUID `json:"-"`
 	Name      string    `json:"name"`
 	Category  string    `json:"category"`
-	Genres    []string  `json:"genres"`
+	Genres    Genres    `json:"genres"`
 	Summary   string    `json:"summary"`
 	WishLevel int       `json:"wish_level"`
 	UserID    uuid.UUID `json:"-"`
@@ -26,7 +26,7 @@ type EditContentOutput struct {
 	ID        uuid.UUID `json:"id"`
 	Name      Name      `json:"name"`
 	Category  string    `json:"category"`
-	Genres    []string  `json:"genres"`
+	Genres    Genres    `json:"genres"`
 	Summary   string    `json:"summary"`
 	WishLevel WishLevel `json:"wish_level"`
 	CreatedAt time.Time `json:"created_at"`
