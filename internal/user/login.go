@@ -14,6 +14,7 @@ type LoginInput struct {
 
 type LoginOutput struct {
 	Token string `json:"token"`
+	Username string `json:"username"`
 }
 
 func (service *service) Login(ctx context.Context, input *LoginInput) (*LoginOutput, error) {
@@ -38,6 +39,7 @@ func (service *service) Login(ctx context.Context, input *LoginInput) (*LoginOut
 
 	return &LoginOutput{
 		Token: token,
+		Username: user.Name,
 	}, nil
 }
 
