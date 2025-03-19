@@ -5,13 +5,12 @@ A ideia é ser um app onde o usuário possa cadastrar livros/filmes/jogos e cont
 ### TODO:
 
 - Must Have
-- Lista de conteúdos (filtros: visto/não visto, generos, categorias, search)
-- Feed: Adicionar filtros
-- Adicionar link/fonte do conteúdo
 
-- Integrar com [TMDB](https://www.themoviedb.org/) para pegar sugestões novas
-
-- Cadastrar a partir de um link (TMDB/Youtube)
+  - Lista de conteúdos (filtros: visto/não visto, generos, categorias, search)
+  - Feed: Adicionar filtros
+  - Adicionar link/fonte do conteúdo
+  - Integrar com [TMDB](https://www.themoviedb.org/) para pegar sugestões novas
+    - Cadastrar a partir de um link (TMDB/Youtube)
 
 - Could have
   - Imagem talvez

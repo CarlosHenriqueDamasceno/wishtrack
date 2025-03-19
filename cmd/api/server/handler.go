@@ -206,6 +206,34 @@ func (api *Api) handleRateContent(w http.ResponseWriter, r *http.Request) {
 
 // Find content godoc
 //
+//	@Summary	list contents
+//	@Tags		content
+//	@Accept		json
+//	@Produce	json
+//	@Param		id	path		string						true	"Content ID"
+//	@Success	200	{object}	content.FindContentOutput	"List of contents"
+//	@Router		/contents/{id} [get]
+//	@Security	ApiKeyAuth
+func (api *Api) handleListContents(w http.ResponseWriter, r *http.Request) {
+	user, err := api.GetLoggedUser(w, r)
+	if err != nil {
+		api.handleError(w, r, "invalid token", err)
+		return
+	}
+
+	pagination := ParsePagination(r)
+
+	out, err := api.contentService.List(r.Context(), user.ID, pagination)
+	if err != nil {
+		api.handleError(w, r, "error finding a content", err)
+		return
+	}
+
+	RespondJSON(out, http.StatusOK, w)
+}
+
+// Find content godoc
+//
 //	@Summary	finds a content
 //	@Tags		content
 //	@Accept		json

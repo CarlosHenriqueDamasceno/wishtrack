@@ -73,10 +73,10 @@ func (suite *FindContentTestSuite) mockContent() *content.WriteDownOutput {
 }
 
 func (suite *FindContentTestSuite) TestFindAContent() {
-	content := suite.mockContent()
+	c := suite.mockContent()
 
 	recorder := httptest.NewRecorder()
-	url := fmt.Sprintf("%s/%s", findBaseUrl, content.ID.String())
+	url := fmt.Sprintf("%s/%s", findBaseUrl, c.ID.String())
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
 
@@ -84,31 +84,31 @@ func (suite *FindContentTestSuite) TestFindAContent() {
 	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
 
 	responseBody := struct {
-		ID        string    `json:"id"`
-		Name      string    `json:"name"`
-		Category  string    `json:"category"`
-		Genres    []string  `json:"genres"`
-		Summary   string    `json:"summary"`
-		WishLevel int       `json:"wish_level"`
-		Rate      *int      `json:"rate"`
-		Comment   *string   `json:"comment"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
+		ID        string         `json:"id"`
+		Name      string         `json:"name"`
+		Category  string         `json:"category"`
+		Genres    content.Genres `json:"genres"`
+		Summary   string         `json:"summary"`
+		WishLevel int            `json:"wish_level"`
+		Rate      *int           `json:"rate"`
+		Comment   *string        `json:"comment"`
+		CreatedAt time.Time      `json:"created_at"`
+		UpdatedAt time.Time      `json:"updated_at"`
 	}{}
 
 	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
 	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
 
-	suite.Assert().Equal(content.ID.String(), responseBody.ID)
-	suite.Assert().Equal(string(content.Name), responseBody.Name)
-	suite.Assert().Equal(content.Category, responseBody.Category)
-	suite.Assert().Equal(content.Genres, responseBody.Genres)
-	suite.Assert().Equal(content.Summary, responseBody.Summary)
-	suite.Assert().Equal(int(content.WishLevel), responseBody.WishLevel)
+	suite.Assert().Equal(c.ID.String(), responseBody.ID)
+	suite.Assert().Equal(string(c.Name), responseBody.Name)
+	suite.Assert().Equal(c.Category, responseBody.Category)
+	suite.Assert().Equal(c.Genres, responseBody.Genres)
+	suite.Assert().Equal(c.Summary, responseBody.Summary)
+	suite.Assert().Equal(int(c.WishLevel), responseBody.WishLevel)
 	suite.Assert().Nil(responseBody.Rate)
 	suite.Assert().Nil(responseBody.Comment)
-	suite.Assert().Equal(content.CreatedAt, responseBody.CreatedAt)
-	suite.Assert().Equal(content.UpdatedAt, responseBody.UpdatedAt)
+	suite.Assert().Equal(c.CreatedAt, responseBody.CreatedAt)
+	suite.Assert().Equal(c.UpdatedAt, responseBody.UpdatedAt)
 }
 
 func TestFindContentTestSuite(t *testing.T) {

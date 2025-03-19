@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/query"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/database"
 	"github.com/google/uuid"
 )
@@ -152,6 +153,58 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 	}
 
 	return feed, nil
+}
+
+func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, pagination query.PaginationInput) (data []*Content, total uint64, err error) {
+	query := `
+		SELECT
+			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
+		FROM contents
+		WHERE user_id = ? LIMIT ? OFFSET ?
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
+	defer cancel()
+
+	offset := pagination.Limit * (pagination.Page - 1)
+	rows, err := r.connection.QueryContext(ctx, query, userId, pagination.Limit, offset)
+	if err != nil {
+		return nil, 0, database.ParseDatabaseError(err)
+	}
+
+	var list []*Content
+
+	for rows.Next() {
+		var genres string
+		content := &Content{}
+
+		err := rows.Scan(
+			&content.ID,
+			&content.Name,
+			&content.Category,
+			&genres,
+			&content.Summary,
+			&content.WishLevel,
+			&content.UserID,
+			&content.CreatedAt,
+			&content.UpdatedAt,
+		)
+		if err != nil {
+			return nil, 0, database.ParseDatabaseError(err)
+		}
+
+		content.Genres = strings.Split(genres, "|")
+
+		list = append(list, content)
+	}
+
+	query = `SELECT COUNT(id) as total FROM contents`
+	err = r.connection.QueryRow(query).Scan(&total)
+	if err != nil {
+		return nil, 0, database.ParseDatabaseError(err)
+	}
+
+	return list, total, nil
 }
 
 func (r *DatabaseRepository) Update(ctx context.Context, content *Content) error {

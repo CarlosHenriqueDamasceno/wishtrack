@@ -15,6 +15,7 @@ func (a *Api) setupRoutes() {
 	a.router.HandleFunc("POST /api/v1/users/register", a.CorsMiddleware(a.handleRegister))
 	a.router.HandleFunc("POST /api/v1/users/login", a.CorsMiddleware(a.handleLogin))
 
+	a.router.HandleFunc("GET /api/v1/contents", a.CorsMiddleware(a.AuthTokenMiddleware(a.handleListContents)))
 	a.router.HandleFunc("POST /api/v1/contents/write-down", a.CorsMiddleware(a.AuthTokenMiddleware(a.handleWriteDown)))
 	a.router.HandleFunc("GET /api/v1/contents/feed", a.CorsMiddleware(a.AuthTokenMiddleware(a.handleFeed)))
 	a.router.HandleFunc("PUT /api/v1/contents/{id}", a.CorsMiddleware(a.AuthTokenMiddleware(a.handleContentEdit)))
