@@ -30,6 +30,7 @@ require (
 	github.com/go-openapi/swag v0.23.1 // indirect
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/golang-migrate/migrate/v4 v4.18.2
+	github.com/gorilla/schema v1.4.1
 	github.com/joho/godotenv v1.5.1
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect

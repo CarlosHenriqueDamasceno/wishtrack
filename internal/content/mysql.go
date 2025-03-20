@@ -3,6 +3,7 @@ package content
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -155,19 +156,24 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 	return feed, nil
 }
 
-func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, pagination query.PaginationInput) (data []*Content, total uint64, err error) {
+func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, pagination query.PaginationInput, filters ContentListFilters) (data []*Content, total uint64, err error) {
 	query := `
 		SELECT
 			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
 		FROM contents
-		WHERE user_id = ? LIMIT ? OFFSET ?
+		WHERE user_id = ?
 	`
+	args := []any{userId}
+	query, args = r.appendFilters(query, args, filters)
+	offset := pagination.Limit * (pagination.Page - 1)
+	args = append(args, pagination.Limit, offset)
+
+	query += " LIMIT ? OFFSET ?"
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
 
-	offset := pagination.Limit * (pagination.Page - 1)
-	rows, err := r.connection.QueryContext(ctx, query, userId, pagination.Limit, offset)
+	rows, err := r.connection.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, 0, database.ParseDatabaseError(err)
 	}
@@ -236,4 +242,51 @@ func (r *DatabaseRepository) Update(ctx context.Context, content *Content) error
 
 	content.UpdatedAt = updatedAt
 	return nil
+}
+
+func (r *DatabaseRepository) appendFilters(query string, args []any, filters ContentListFilters) (string, []any) {
+	if filters.Category != nil {
+		query += " AND category = ?"
+		args = append(args, filters.Category)
+	}
+
+	if filters.Watched != nil {
+		if *filters.Watched {
+			query += " AND rate IS NOT NULL"
+		} else {
+			query += " AND rate IS NULL"
+		}
+	}
+
+	if filters.Name != nil {
+		query += " AND name LIKE ?"
+		args = append(args, "%"+*filters.Name+"%")
+	}
+
+	if filters.Summary != nil {
+		query += " AND summary LIKE ?"
+		args = append(args, "%"+*filters.Summary+"%")
+	}
+
+	if filters.WishLevel != nil {
+		query += " AND wish_level >= ?"
+		args = append(args, *filters.WishLevel)
+	}
+
+	if filters.Genres != nil && len(*filters.Genres) > 0 {
+		var conditions []string
+		for _, genre := range *filters.Genres {
+			conditions = append(conditions, fmt.Sprintf(
+				"genres LIKE '%%|%s|%%' OR genres LIKE '%s|%%' OR genres LIKE '%%|%s' OR genres = '%s'",
+				genre,
+				genre,
+				genre,
+				genre,
+			))
+		}
+		value := strings.Join(conditions, " OR ")
+		query += " AND " + value
+	}
+
+	return query, args
 }

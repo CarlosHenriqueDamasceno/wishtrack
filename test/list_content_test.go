@@ -102,6 +102,14 @@ func (suite *ListTestSuite) mockContents() []*content.WriteDownOutput {
 	suite.Assert().Nil(err)
 	output = append(output, out)
 
+	err = suite.contentService.Rate(ctx, &content.RateContentInput{
+		UserID:  firstContent.UserID,
+		ID:      out.ID,
+		Rate:    5,
+		Comment: "Master piece",
+	})
+	suite.Assert().Nil(err)
+
 	out, err = suite.contentService.WriteDown(ctx, secondContent)
 	suite.Assert().Nil(err)
 	output = append(output, out)
@@ -165,6 +173,138 @@ func (suite *ListTestSuite) TestShouldGetSecondPageOfContents() {
 	suite.Assert().Equal(expectedPage, responseBody.Page)
 	suite.Assert().Equal(uint64(len(contents)), responseBody.Total)
 	suite.Assert().Equal(contents[1].ID.String(), responseBody.Data[0].ID)
+}
+
+func (suite *ListTestSuite) TestShouldFilterContentsByWatched() {
+	suite.mockContents()
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
+	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+
+	q := req.URL.Query()
+	q.Add("watched", "true")
+	req.URL.RawQuery = q.Encode()
+
+	suite.server.ServeHTTP(recorder, req)
+	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
+
+	var responseBody listResponse
+
+	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
+	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
+
+	suite.Assert().Equal(1, len(responseBody.Data))
+}
+
+func (suite *ListTestSuite) TestShouldFilterContentsByCategory() {
+	suite.mockContents()
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
+	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+
+	q := req.URL.Query()
+	q.Add("category", "movie")
+	req.URL.RawQuery = q.Encode()
+
+	suite.server.ServeHTTP(recorder, req)
+	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
+
+	var responseBody listResponse
+
+	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
+	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
+
+	suite.Assert().Equal(1, len(responseBody.Data))
+}
+
+func (suite *ListTestSuite) TestShouldFilterContentsByGenres() {
+	suite.mockContents()
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
+	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+
+	q := req.URL.Query()
+	q.Add("genres", "fantasy,war")
+	req.URL.RawQuery = q.Encode()
+
+	suite.server.ServeHTTP(recorder, req)
+	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
+
+	var responseBody listResponse
+
+	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
+	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
+
+	suite.Assert().Equal(2, len(responseBody.Data))
+}
+
+func (suite *ListTestSuite) TestShouldFilterContentsByName() {
+	suite.mockContents()
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
+	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+
+	q := req.URL.Query()
+	q.Add("name", "lord")
+	req.URL.RawQuery = q.Encode()
+
+	suite.server.ServeHTTP(recorder, req)
+	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
+
+	var responseBody listResponse
+
+	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
+	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
+
+	suite.Assert().Equal(1, len(responseBody.Data))
+}
+
+func (suite *ListTestSuite) TestShouldFilterContentsBySummary() {
+	suite.mockContents()
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
+	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+
+	q := req.URL.Query()
+	q.Add("summary", "The third movie")
+	req.URL.RawQuery = q.Encode()
+
+	suite.server.ServeHTTP(recorder, req)
+	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
+
+	var responseBody listResponse
+
+	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
+	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
+
+	suite.Assert().Equal(1, len(responseBody.Data))
+}
+
+func (suite *ListTestSuite) TestShouldFilterContentsByMinWishLevel() {
+	suite.mockContents()
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
+	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+
+	q := req.URL.Query()
+	q.Add("wishLevel", "3")
+	req.URL.RawQuery = q.Encode()
+
+	suite.server.ServeHTTP(recorder, req)
+	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
+
+	var responseBody listResponse
+
+	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
+	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
+
+	suite.Assert().Equal(1, len(responseBody.Data))
 }
 
 func TestListTestSuite(t *testing.T) {

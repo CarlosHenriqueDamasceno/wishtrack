@@ -222,8 +222,9 @@ func (api *Api) handleListContents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pagination := ParsePagination(r)
+	filters := ParseContentFilters(r)
 
-	out, err := api.contentService.List(r.Context(), user.ID, pagination)
+	out, err := api.contentService.List(r.Context(), user.ID, pagination, filters)
 	if err != nil {
 		api.handleError(w, r, "error finding a content", err)
 		return

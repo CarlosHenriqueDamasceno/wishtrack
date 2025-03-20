@@ -12,8 +12,17 @@ type ListContentsOutput struct {
 	query.PaginationOutput
 }
 
-func (s *service) List(ctx context.Context, userID uuid.UUID, pagination query.PaginationInput) (*ListContentsOutput, error) {
-	contents, total, err := s.repository.List(ctx, userID, pagination)
+type ContentListFilters struct {
+	Watched   *bool
+	Category  *string
+	Genres    *[]string
+	Name      *string
+	Summary   *string
+	WishLevel *int
+}
+
+func (s *service) List(ctx context.Context, userID uuid.UUID, pagination query.PaginationInput, filters ContentListFilters) (*ListContentsOutput, error) {
+	contents, total, err := s.repository.List(ctx, userID, pagination, filters)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,7 @@ type Service interface {
 	Rate(ctx context.Context, input *RateContentInput) error
 	Find(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*FindContentOutput, error)
 	Delete(ctx context.Context, id, userID uuid.UUID) error
-	List(ctx context.Context, userID uuid.UUID, pagination query.PaginationInput) (*ListContentsOutput, error)
+	List(ctx context.Context, userID uuid.UUID, pagination query.PaginationInput, filters ContentListFilters) (*ListContentsOutput, error)
 }
 
 type service struct {
