@@ -23,10 +23,7 @@ type FindContentTestSuite struct {
 }
 
 func (suite *FindContentTestSuite) SetupTest() {
-	conn, err := SetupDatabase()
-	suite.Assert().Nil(err, "Fail to connect to database")
-
-	suite.conn = conn
+	suite.SetupDatabase()
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -52,7 +49,7 @@ func (suite *FindContentTestSuite) SetupTest() {
 }
 
 func (suite *FindContentTestSuite) TearDownTest() {
-	suite.conn.Close()
+	suite.destroyDatabase(context.Background())
 }
 
 func (suite *FindContentTestSuite) mockContent() *content.WriteDownOutput {

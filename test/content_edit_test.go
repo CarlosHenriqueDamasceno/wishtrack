@@ -24,10 +24,7 @@ type ContentEditTestSuite struct {
 }
 
 func (suite *ContentEditTestSuite) SetupTest() {
-	conn, err := SetupDatabase()
-	suite.Assert().Nil(err, "Fail to connect to database")
-
-	suite.conn = conn
+	suite.SetupDatabase()
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -53,7 +50,7 @@ func (suite *ContentEditTestSuite) SetupTest() {
 }
 
 func (suite *ContentEditTestSuite) TearDownTest() {
-	suite.conn.Close()
+	suite.destroyDatabase(context.Background())
 }
 
 func (suite *ContentEditTestSuite) mockContent() *content.WriteDownOutput {

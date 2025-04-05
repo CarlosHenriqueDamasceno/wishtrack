@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -22,10 +23,7 @@ type WriteDownTestSuite struct {
 }
 
 func (suite *WriteDownTestSuite) SetupTest() {
-	conn, err := SetupDatabase()
-	suite.Assert().Nil(err, "Fail to connect to database")
-
-	suite.conn = conn
+	suite.SetupDatabase()
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -51,7 +49,7 @@ func (suite *WriteDownTestSuite) SetupTest() {
 }
 
 func (suite *WriteDownTestSuite) TearDownTest() {
-	suite.conn.Close()
+	suite.destroyDatabase(context.Background())
 }
 
 func (suite *WriteDownTestSuite) TestShouldFailToWriteDownWithoutName() {

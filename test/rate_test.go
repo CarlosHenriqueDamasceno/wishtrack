@@ -23,10 +23,7 @@ type RateContentTestSuite struct {
 }
 
 func (suite *RateContentTestSuite) SetupTest() {
-	conn, err := SetupDatabase()
-	suite.Assert().Nil(err, "Fail to connect to database")
-
-	suite.conn = conn
+	suite.SetupDatabase()
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	suite.contentRepository = content.NewDatabaseRepository(suite.conn)
 
@@ -52,7 +49,7 @@ func (suite *RateContentTestSuite) SetupTest() {
 }
 
 func (suite *RateContentTestSuite) TearDownTest() {
-	suite.conn.Close()
+	suite.destroyDatabase(context.Background())
 }
 
 func (suite *RateContentTestSuite) mockContent() *content.WriteDownOutput {

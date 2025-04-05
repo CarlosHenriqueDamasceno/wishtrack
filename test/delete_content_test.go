@@ -22,10 +22,7 @@ type DeleteContentTestSuite struct {
 }
 
 func (suite *DeleteContentTestSuite) SetupTest() {
-	conn, err := SetupDatabase()
-	suite.Assert().Nil(err, "Fail to connect to database")
-
-	suite.conn = conn
+	suite.SetupDatabase()
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -51,7 +48,7 @@ func (suite *DeleteContentTestSuite) SetupTest() {
 }
 
 func (suite *DeleteContentTestSuite) TearDownTest() {
-	suite.conn.Close()
+	suite.destroyDatabase(context.Background())
 }
 
 func (suite *DeleteContentTestSuite) mockContent() *content.WriteDownOutput {

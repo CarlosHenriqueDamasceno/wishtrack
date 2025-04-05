@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -25,8 +24,7 @@ const (
 )
 
 type LoginTestSuite struct {
-	suite.Suite
-	conn           *sql.DB
+	DatabaseSuite
 	userRepository user.Repository
 	userService    user.Service
 	server         *server.Api
@@ -34,10 +32,7 @@ type LoginTestSuite struct {
 }
 
 func (suite *LoginTestSuite) SetupTest() {
-	conn, err := SetupDatabase()
-	suite.Assert().Nil(err, "Fail to connect to database")
-
-	suite.conn = conn
+	suite.SetupDatabase()
 	suite.userRepository = user.NewDatabaseRepository(suite.conn)
 
 	suite.auth = user.NewJwtAuthenticator(
@@ -59,7 +54,7 @@ func (suite *LoginTestSuite) SetupTest() {
 }
 
 func (suite *LoginTestSuite) TearDownTest() {
-	suite.conn.Close()
+	suite.destroyDatabase(context.Background())
 }
 
 func (suite *LoginTestSuite) mockUser(email, password string) *user.RegisterOutput {

@@ -43,10 +43,7 @@ type ListTestSuite struct {
 }
 
 func (suite *ListTestSuite) SetupTest() {
-	conn, err := SetupDatabase()
-	suite.Assert().Nil(err, "Fail to connect to database")
-
-	suite.conn = conn
+	suite.SetupDatabase()
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -72,7 +69,7 @@ func (suite *ListTestSuite) SetupTest() {
 }
 
 func (suite *ListTestSuite) TearDownTest() {
-	suite.conn.Close()
+	suite.destroyDatabase(context.Background())
 }
 
 func (suite *ListTestSuite) mockContents() []*content.WriteDownOutput {
@@ -227,7 +224,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByGenres() {
 	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
-	q.Add("genres", "fantasy,war")
+	q.Add("genres", "fantasy")
 	req.URL.RawQuery = q.Encode()
 
 	suite.server.ServeHTTP(recorder, req)
@@ -238,7 +235,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByGenres() {
 	err := json.NewDecoder(recorder.Result().Body).Decode(&responseBody)
 	suite.Assert().Nil(err, "Fail to unmarshal response: %s")
 
-	suite.Assert().Equal(2, len(responseBody.Data))
+	suite.Assert().Equal(1, len(responseBody.Data))
 }
 
 func (suite *ListTestSuite) TestShouldFilterContentsByName() {

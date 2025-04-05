@@ -6,14 +6,14 @@ import (
 	"errors"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 )
 
 var ErrRecordNotFound = errors.New("record not found")
 
 func ParseDatabaseError(err error) error {
-	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
-		return errors.New(mysqlErr.Message)
+	if postgressError, ok := err.(*pq.Error); ok {
+		return errors.New(postgressError.Message)
 	}
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -24,7 +24,7 @@ func ParseDatabaseError(err error) error {
 }
 
 func New(addr string, maxOpenConns, maxIdleConns int, maxIdleTime time.Duration) (*sql.DB, error) {
-	db, err := sql.Open("mysql", addr)
+	db, err := sql.Open("postgres", addr)
 	if err != nil {
 		return nil, err
 	}

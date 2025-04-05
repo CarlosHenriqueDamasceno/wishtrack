@@ -3,13 +3,12 @@ package content
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/query"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/database"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const QueryExecTimeout = time.Second * 10
@@ -29,7 +28,7 @@ func (r *DatabaseRepository) Create(ctx context.Context, content *Content) error
 		INSERT INTO contents
 			(id, name, category, genres, summary, wish_level, user_id)
 		VALUES
-			(?, ?, ?, ?, ?, ?, ?)
+			($1, $2, $3, $4, $5, $6, $7)
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
@@ -41,7 +40,7 @@ func (r *DatabaseRepository) Create(ctx context.Context, content *Content) error
 		content.ID,
 		content.Name,
 		content.Category,
-		strings.Join(content.Genres, "|"),
+		pq.Array(content.Genres),
 		content.Summary,
 		content.WishLevel,
 		content.UserID,
@@ -66,20 +65,19 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*Content, 
 		SELECT
 			id, name, category, genres, summary, wish_level, user_id, rate, comment, created_at, updated_at
 		FROM contents
-		WHERE id = ?
+		WHERE id = $1
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
 
-	var genres string
-
 	content := &Content{}
+	var genres []string
 	err := r.connection.QueryRowContext(ctx, query, id).Scan(
 		&content.ID,
 		&content.Name,
 		&content.Category,
-		&genres,
+		pq.Array(&genres),
 		&content.Summary,
 		&content.WishLevel,
 		&content.UserID,
@@ -92,13 +90,13 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*Content, 
 		return nil, database.ParseDatabaseError(err)
 	}
 
-	content.Genres = strings.Split(genres, "|")
+	content.Genres = genres
 
 	return content, nil
 }
 
 func (r *DatabaseRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM contents WHERE id = ?`
+	query := `DELETE FROM contents WHERE id = $1`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
@@ -116,7 +114,7 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 		SELECT
 			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
 		FROM contents
-		WHERE user_id = ? AND rate IS NULL ORDER BY wish_level DESC LIMIT 5
+		WHERE user_id = $1 AND rate IS NULL ORDER BY wish_level DESC LIMIT 5
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
@@ -130,14 +128,13 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 	var feed []*Content
 
 	for rows.Next() {
-		var genres string
 		content := &Content{}
-
+		var genres []string
 		err := rows.Scan(
 			&content.ID,
 			&content.Name,
 			&content.Category,
-			&genres,
+			pq.Array(&genres),
 			&content.Summary,
 			&content.WishLevel,
 			&content.UserID,
@@ -148,8 +145,7 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Con
 			return nil, database.ParseDatabaseError(err)
 		}
 
-		content.Genres = strings.Split(genres, "|")
-
+		content.Genres = genres
 		feed = append(feed, content)
 	}
 
@@ -161,19 +157,38 @@ func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, paginat
 		SELECT
 			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
 		FROM contents
-		WHERE user_id = ?
+		WHERE user_id = $1
+		AND (category ILIKE '%' || $2 || '%' OR $2 IS NULL)
+		AND (genres && $3 OR $3 IS NULL)
+		AND (name ILIKE '%' || $4 || '%' OR $4 IS NULL)
+		AND (summary ILIKE '%' || $5 || '%' OR $5 IS NULL)
+		AND (wish_level >= $6 OR $6 IS NULL)
+		AND (
+			($7 IS TRUE AND rate IS NOT NULL) OR
+			($7 IS FALSE AND rate IS NULL) OR
+			($7 IS NULL)
+		)
+		LIMIT $8 OFFSET $9
 	`
-	args := []any{userId}
-	query, args = r.appendFilters(query, args, filters)
-	offset := pagination.Limit * (pagination.Page - 1)
-	args = append(args, pagination.Limit, offset)
 
-	query += " LIMIT ? OFFSET ?"
+	offset := pagination.Limit * (pagination.Page - 1)
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
 
-	rows, err := r.connection.QueryContext(ctx, query, args...)
+	rows, err := r.connection.QueryContext(
+		ctx,
+		query,
+		userId,
+		filters.Category,
+		pq.Array(filters.Genres),
+		filters.Name,
+		filters.Summary,
+		filters.WishLevel,
+		filters.Watched,
+		pagination.Limit,
+		offset,
+	)
 	if err != nil {
 		return nil, 0, database.ParseDatabaseError(err)
 	}
@@ -181,14 +196,13 @@ func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, paginat
 	var list []*Content
 
 	for rows.Next() {
-		var genres string
 		content := &Content{}
-
+		var genres []string
 		err := rows.Scan(
 			&content.ID,
 			&content.Name,
 			&content.Category,
-			&genres,
+			pq.Array(&genres),
 			&content.Summary,
 			&content.WishLevel,
 			&content.UserID,
@@ -199,8 +213,7 @@ func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, paginat
 			return nil, 0, database.ParseDatabaseError(err)
 		}
 
-		content.Genres = strings.Split(genres, "|")
-
+		content.Genres = genres
 		list = append(list, content)
 	}
 
@@ -215,8 +228,8 @@ func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, paginat
 
 func (r *DatabaseRepository) Update(ctx context.Context, content *Content) error {
 	query := `UPDATE contents
-				SET name = ?, category = ?, genres = ?, summary = ?, wish_level = ?, rate = ?, comment = ?, updated_at = ?
-				WHERE id = ?`
+				SET name = $1, category = $2, genres = $3, summary = $4, wish_level = $5, rate = $6, comment = $7, updated_at = $8
+				WHERE id = $9`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
@@ -228,7 +241,7 @@ func (r *DatabaseRepository) Update(ctx context.Context, content *Content) error
 		query,
 		content.Name,
 		content.Category,
-		strings.Join(content.Genres, "|"),
+		pq.Array(content.Genres),
 		content.Summary,
 		content.WishLevel,
 		content.Rate,
@@ -242,51 +255,4 @@ func (r *DatabaseRepository) Update(ctx context.Context, content *Content) error
 
 	content.UpdatedAt = updatedAt
 	return nil
-}
-
-func (r *DatabaseRepository) appendFilters(query string, args []any, filters ContentListFilters) (string, []any) {
-	if filters.Category != nil {
-		query += " AND category = ?"
-		args = append(args, filters.Category)
-	}
-
-	if filters.Watched != nil {
-		if *filters.Watched {
-			query += " AND rate IS NOT NULL"
-		} else {
-			query += " AND rate IS NULL"
-		}
-	}
-
-	if filters.Name != nil {
-		query += " AND name LIKE ?"
-		args = append(args, "%"+*filters.Name+"%")
-	}
-
-	if filters.Summary != nil {
-		query += " AND summary LIKE ?"
-		args = append(args, "%"+*filters.Summary+"%")
-	}
-
-	if filters.WishLevel != nil {
-		query += " AND wish_level >= ?"
-		args = append(args, *filters.WishLevel)
-	}
-
-	if filters.Genres != nil && len(*filters.Genres) > 0 {
-		var conditions []string
-		for _, genre := range *filters.Genres {
-			conditions = append(conditions, fmt.Sprintf(
-				"genres LIKE '%%|%s|%%' OR genres LIKE '%s|%%' OR genres LIKE '%%|%s' OR genres = '%s'",
-				genre,
-				genre,
-				genre,
-				genre,
-			))
-		}
-		value := strings.Join(conditions, " OR ")
-		query += " AND " + value
-	}
-
-	return query, args
 }

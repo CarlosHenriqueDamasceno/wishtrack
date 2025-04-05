@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/database"
-	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const QueryExecTimeout = time.Second * 10
@@ -30,7 +31,7 @@ func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
 		INSERT INTO users
 			(id, name, email, password)
 		VALUES
-			(?, ?, ?, ?)
+			($1, $2, $3, $4)
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
@@ -45,7 +46,8 @@ func (r *DatabaseRepository) Create(ctx context.Context, user *User) error {
 		user.password.value,
 	)
 	if err != nil {
-		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+		log.Println(err)
+		if postgresError, ok := err.(*pq.Error); ok && postgresError.Code == "23505" {
 			return ErrDuplicateEmail
 		}
 		return database.ParseDatabaseError(err)
@@ -67,7 +69,7 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, err
 		SELECT
 			id, name, email, password, created_at, updated_at
 		FROM users
-		WHERE id = ?
+		WHERE id = $1
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
@@ -83,6 +85,7 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, err
 		&user.UpdatedAt,
 	)
 	if err != nil {
+		log.Println(err)
 		return nil, database.ParseDatabaseError(err)
 	}
 
@@ -90,7 +93,7 @@ func (r *DatabaseRepository) Find(ctx context.Context, id uuid.UUID) (*User, err
 }
 
 func (r *DatabaseRepository) IsEmailAlreadyTaken(ctx context.Context, email Email) (bool, error) {
-	query := "SELECT COUNT(id) FROM users WHERE email = ?"
+	query := "SELECT COUNT(id) FROM users WHERE email = $1"
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
@@ -109,7 +112,7 @@ func (r *DatabaseRepository) FindByEmail(ctx context.Context, email string) (*Us
 				SELECT
 					id, name, email, password, created_at, updated_at
 				FROM users
-				WHERE email = ?
+				WHERE email = $1
 			`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)

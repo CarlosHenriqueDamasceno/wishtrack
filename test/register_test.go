@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -13,25 +12,20 @@ import (
 	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/server"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	"github.com/google/uuid"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/suite"
 )
 
 const registerBaseUrl = "/api/v1/users/register"
 
 type RegisterTestSuite struct {
-	suite.Suite
-	conn           *sql.DB
+	DatabaseSuite
 	userRepository user.Repository
 	userService    user.Service
 	server         *server.Api
 }
 
 func (suite *RegisterTestSuite) SetupTest() {
-	conn, err := SetupDatabase()
-	suite.Assert().Nil(err, "Fail to connect to database")
-
-	suite.conn = conn
+	suite.SetupDatabase()
 
 	suite.userRepository = user.NewDatabaseRepository(suite.conn)
 	suite.userService = user.NewService(suite.userRepository, nil)
@@ -45,7 +39,7 @@ func (suite *RegisterTestSuite) SetupTest() {
 }
 
 func (suite *RegisterTestSuite) TearDownTest() {
-	suite.conn.Close()
+	suite.destroyDatabase(context.Background())
 }
 
 func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {

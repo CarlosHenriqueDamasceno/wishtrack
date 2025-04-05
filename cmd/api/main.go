@@ -14,8 +14,8 @@ import (
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/database"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func run(conf *server.Config, logger *slog.Logger) error {

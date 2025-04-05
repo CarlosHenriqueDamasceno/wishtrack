@@ -21,11 +21,11 @@ migration:
 
 .PHONY: migrate-up
 migrate-up:
-	@migrate -path=$(MIGRATIONS_PATH) -database=$(DB_DRIVER)://$(DB_DSN) up
+	@migrate -path=$(MIGRATIONS_PATH) -database=$(DB_DSN) up
 
 .PHONY: migrate-down
 migrate-down:
-	@migrate -path=$(MIGRATIONS_PATH) -database=$(DB_DRIVER)://$(DB_DSN) down $(filter-out $@,$(MAKECMDGOALS))
+	@migrate -path=$(MIGRATIONS_PATH) -database=$(DB_DSN) down $(filter-out $@,$(MAKECMDGOALS))
 
 .PHONY: gen-docs
 gen-docs:

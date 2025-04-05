@@ -1,15 +1,14 @@
-version: '3.7'
+version: "3.7"
 services:
   database:
-    image: mysql/mysql-server:8.0
+    image: postgres:17.4-alpine
     ports:
-        - '3306:3306'
+      - "5432:5432"
     environment:
-        MYSQL_ROOT_PASSWORD: 'admin'
-        MYSQL_DATABASE: 'wishtrack'
-        MYSQL_USER: 'admin'
-        MYSQL_PASSWORD: 'admin'
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: wishtrack
     volumes:
-        - 'database:/var/lib/mysql'
+      - database:/var/lib/postgresql/data
 volumes:
   database:
