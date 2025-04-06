@@ -21,8 +21,11 @@ type FeedTestSuite struct {
 	LoggedRequestBaseSuite
 }
 
-func (suite *FeedTestSuite) SetupTest() {
+func (suite *FeedTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
+
+func (suite *FeedTestSuite) SetupTest() {
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -48,7 +51,11 @@ func (suite *FeedTestSuite) SetupTest() {
 }
 
 func (suite *FeedTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
+}
+
+func (suite *FeedTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
 }
 
 func (suite *FeedTestSuite) mockContents() []*content.WriteDownOutput {

@@ -22,8 +22,11 @@ type FindContentTestSuite struct {
 	LoggedRequestBaseSuite
 }
 
-func (suite *FindContentTestSuite) SetupTest() {
+func (suite *FindContentTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
+
+func (suite *FindContentTestSuite) SetupTest() {
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -49,7 +52,11 @@ func (suite *FindContentTestSuite) SetupTest() {
 }
 
 func (suite *FindContentTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
+}
+
+func (suite *FindContentTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
 }
 
 func (suite *FindContentTestSuite) mockContent() *content.WriteDownOutput {

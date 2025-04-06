@@ -22,8 +22,11 @@ type RateContentTestSuite struct {
 	contentRepository content.Repository
 }
 
-func (suite *RateContentTestSuite) SetupTest() {
+func (suite *RateContentTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
+
+func (suite *RateContentTestSuite) SetupTest() {
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	suite.contentRepository = content.NewDatabaseRepository(suite.conn)
 
@@ -49,7 +52,11 @@ func (suite *RateContentTestSuite) SetupTest() {
 }
 
 func (suite *RateContentTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
+}
+
+func (suite *RateContentTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
 }
 
 func (suite *RateContentTestSuite) mockContent() *content.WriteDownOutput {

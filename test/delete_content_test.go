@@ -21,8 +21,11 @@ type DeleteContentTestSuite struct {
 	LoggedRequestBaseSuite
 }
 
-func (suite *DeleteContentTestSuite) SetupTest() {
+func (suite *DeleteContentTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
+
+func (suite *DeleteContentTestSuite) SetupTest() {
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -48,9 +51,12 @@ func (suite *DeleteContentTestSuite) SetupTest() {
 }
 
 func (suite *DeleteContentTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
 }
 
+func (suite *DeleteContentTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
+}
 func (suite *DeleteContentTestSuite) mockContent() *content.WriteDownOutput {
 	ctx := context.Background()
 

@@ -22,8 +22,11 @@ type WriteDownTestSuite struct {
 	LoggedRequestBaseSuite
 }
 
-func (suite *WriteDownTestSuite) SetupTest() {
+func (suite *WriteDownTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
+
+func (suite *WriteDownTestSuite) SetupTest() {
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -49,7 +52,11 @@ func (suite *WriteDownTestSuite) SetupTest() {
 }
 
 func (suite *WriteDownTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
+}
+
+func (suite *WriteDownTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
 }
 
 func (suite *WriteDownTestSuite) TestShouldFailToWriteDownWithoutName() {
@@ -84,7 +91,7 @@ func (suite *WriteDownTestSuite) TestShouldFailToWriteDownWithoutName() {
 	expectedErrors := map[string][]string{"name": {"field \"name\" is required"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	AssertDatabaseCount(suite.conn, &suite.Suite, 0, "contents", "id")
+	suite.AssertDatabaseCount(0, "contents", "id")
 }
 
 func (suite *WriteDownTestSuite) TestShouldFailToWriteDownInvalidName() {
@@ -119,7 +126,7 @@ func (suite *WriteDownTestSuite) TestShouldFailToWriteDownInvalidName() {
 	expectedErrors := map[string][]string{"name": {"field \"name\" must be at least 3 characters long"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	AssertDatabaseCount(suite.conn, &suite.Suite, 0, "contents", "id")
+	suite.AssertDatabaseCount(0, "contents", "id")
 }
 
 func (suite *WriteDownTestSuite) TestShouldFailToWriteDownWithInvalidWishLevel() {
@@ -153,7 +160,7 @@ func (suite *WriteDownTestSuite) TestShouldFailToWriteDownWithInvalidWishLevel()
 	expectedErrors := map[string][]string{"wish_level": {"field \"wish_level\" must be between 1 and 5"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	AssertDatabaseCount(suite.conn, &suite.Suite, 0, "contents", "id")
+	suite.AssertDatabaseCount(0, "contents", "id")
 }
 
 func (suite *WriteDownTestSuite) TestShouldWriteDown() {

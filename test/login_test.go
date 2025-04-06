@@ -31,8 +31,11 @@ type LoginTestSuite struct {
 	auth           user.Authenticator
 }
 
-func (suite *LoginTestSuite) SetupTest() {
+func (suite *LoginTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
+
+func (suite *LoginTestSuite) SetupTest() {
 	suite.userRepository = user.NewDatabaseRepository(suite.conn)
 
 	suite.auth = user.NewJwtAuthenticator(
@@ -54,7 +57,11 @@ func (suite *LoginTestSuite) SetupTest() {
 }
 
 func (suite *LoginTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
+}
+
+func (suite *LoginTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
 }
 
 func (suite *LoginTestSuite) mockUser(email, password string) *user.RegisterOutput {

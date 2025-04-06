@@ -45,7 +45,7 @@ func (suite *DatabaseSuite) SetupDatabase() {
 
 	suite.createDatabase(ctx)
 	suite.conn = suite.startConnection()
-	suite.migrate()
+	suite.Migrate()
 }
 
 func (suite *DatabaseSuite) createDatabase(ctx context.Context) {
@@ -75,13 +75,23 @@ func (suite *DatabaseSuite) startConnection() *sql.DB {
 	return conn
 }
 
-func (suite *DatabaseSuite) destroyDatabase(ctx context.Context) {
+func (suite *DatabaseSuite) ClearDatabase() {
+	_, err := suite.conn.Exec(`
+        DROP SCHEMA public CASCADE;
+        CREATE SCHEMA public;
+    `)
+	suite.Assert().Nil(err, "Should clean database")
+
+	suite.Migrate()
+}
+
+func (suite *DatabaseSuite) DestroyDatabase(ctx context.Context) {
 	if err := suite.container.Terminate(ctx); err != nil {
 		suite.Assert().Nil(err)
 	}
 }
 
-func (suite *DatabaseSuite) migrate() {
+func (suite *DatabaseSuite) Migrate() {
 	driver, err := migratePg.WithInstance(suite.conn, &migratePg.Config{})
 	suite.Assert().Nil(err)
 
@@ -100,6 +110,13 @@ func (suite *DatabaseSuite) dsn(ctx context.Context) string {
 	dsn, err := suite.container.ConnectionString(ctx, "sslmode=disable", "TimeZone=UTC")
 	suite.Assert().Nil(err)
 	return dsn
+}
+
+func (suite *DatabaseSuite) AssertDatabaseCount(expectedCount int, table string, column string) {
+	var count int
+	err := suite.conn.QueryRow("SELECT COUNT(" + column + ") FROM " + table).Scan(&count)
+	suite.Nil(err, "Fail to count rows")
+	suite.Equal(expectedCount, count)
 }
 
 type LoggedRequestBaseSuite struct {

@@ -24,9 +24,11 @@ type RegisterTestSuite struct {
 	server         *server.Api
 }
 
-func (suite *RegisterTestSuite) SetupTest() {
+func (suite *RegisterTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
 
+func (suite *RegisterTestSuite) SetupTest() {
 	suite.userRepository = user.NewDatabaseRepository(suite.conn)
 	suite.userService = user.NewService(suite.userRepository, nil)
 	suite.server = server.NewApi(
@@ -39,7 +41,11 @@ func (suite *RegisterTestSuite) SetupTest() {
 }
 
 func (suite *RegisterTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
+}
+
+func (suite *RegisterTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
 }
 
 func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
@@ -70,7 +76,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidEmail() {
 	expectedErrors := map[string][]string{"email": {"field \"email\" must be a valid e-mail address"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	AssertDatabaseCount(suite.conn, &suite.Suite, 0, "users", "id")
+	suite.AssertDatabaseCount(0, "users", "id")
 }
 
 func (suite *RegisterTestSuite) TestShouldFailToRegisterWithEmailInUse() {
@@ -110,7 +116,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithEmailInUse() {
 	expectedErrors := map[string][]string{"email": {"e-mail already in use"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	AssertDatabaseCount(suite.conn, &suite.Suite, 1, "users", "id")
+	suite.AssertDatabaseCount(1, "users", "id")
 }
 
 func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidPassword() {
@@ -141,7 +147,7 @@ func (suite *RegisterTestSuite) TestShouldFailToRegisterWithInvalidPassword() {
 	expectedErrors := map[string][]string{"password": {"field \"password\" must be at least 8 characters long"}}
 	suite.Assert().Equal(expectedErrors, resp.Errors)
 
-	AssertDatabaseCount(suite.conn, &suite.Suite, 0, "users", "id")
+	suite.AssertDatabaseCount(0, "users", "id")
 }
 
 func (suite *RegisterTestSuite) TestShouldRegister() {

@@ -42,8 +42,11 @@ type ListTestSuite struct {
 	LoggedRequestBaseSuite
 }
 
-func (suite *ListTestSuite) SetupTest() {
+func (suite *ListTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
+
+func (suite *ListTestSuite) SetupTest() {
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -69,7 +72,11 @@ func (suite *ListTestSuite) SetupTest() {
 }
 
 func (suite *ListTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
+}
+
+func (suite *ListTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
 }
 
 func (suite *ListTestSuite) mockContents() []*content.WriteDownOutput {

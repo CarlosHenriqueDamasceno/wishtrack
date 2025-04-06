@@ -23,8 +23,11 @@ type ContentEditTestSuite struct {
 	LoggedRequestBaseSuite
 }
 
-func (suite *ContentEditTestSuite) SetupTest() {
+func (suite *ContentEditTestSuite) SetupSuite() {
 	suite.SetupDatabase()
+}
+
+func (suite *ContentEditTestSuite) SetupTest() {
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -50,7 +53,11 @@ func (suite *ContentEditTestSuite) SetupTest() {
 }
 
 func (suite *ContentEditTestSuite) TearDownTest() {
-	suite.destroyDatabase(context.Background())
+	suite.ClearDatabase()
+}
+
+func (suite *ContentEditTestSuite) TearDownSuite() {
+	suite.DestroyDatabase(context.Background())
 }
 
 func (suite *ContentEditTestSuite) mockContent() *content.WriteDownOutput {
