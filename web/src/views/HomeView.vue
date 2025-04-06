@@ -1,22 +1,42 @@
 <script setup lang="ts">
-import Button from '@/components/CustomButton.vue'
 import ContentComponent from '@/components/Content.vue'
 import Topbar from '@/components/Topbar.vue'
 import Modal from '@/components/Modal.vue'
 import { useLoginStore } from '@/stores/auth'
-import { onMounted, reactive, ref, type Ref } from 'vue'
+import { onMounted, reactive, ref, type Ref, watch } from 'vue'
 import type Content from '@/types/content'
 import CustomButton from '@/components/CustomButton.vue'
 import router from '@/router'
+import Pagination from '@/components/CustomPagination.vue'
+import StatusFilter from '@/components/StatusFilter.vue'
+import GenresFilter from '@/components/GenresFilter.vue'
+import { Status } from '@/types/status'
+import httpClient from '@/http/client'
 
 interface Errors {
   [index: string]: string[]
 }
 
 const store = useLoginStore()
+
 const error: Ref<string> = ref('')
 const errors = ref<Errors>({})
 const contents = ref<[]>([])
+
+const pagination = ref({
+  currentPage: 1,
+  totalItems: 1,
+  limit: 10,
+})
+
+const filters = ref<{
+  watched: boolean | null
+  search: string
+}>({
+  watched: null,
+  search: '',
+})
+
 const showWriteDownModal = ref<boolean>(false)
 const showRateForm = ref<boolean>(false)
 const writingTag = ref<string>('')
@@ -49,119 +69,139 @@ const rateInput: RateInput = reactive({
   comment: '',
 })
 
-onMounted(feed)
+onMounted(fetchItems)
 
-async function feed() {
-  const res = await fetch(import.meta.env.VITE_API_URL + '/contents/feed', {
-    headers: {
-      Authorization: 'Bearer ' + store.auth?.token,
-    },
-  })
+let searchTimeout: number | null = null
 
-  if (false === res.ok) {
-    if (res.status === 401) {
-      store.signOut()
-      router.push({ name: 'login' })
+const genres = ref<string[]>([])
+
+const handleGenreFilter = (newGenres: string[]) => {
+  genres.value = newGenres
+  fetchItems()
+}
+
+watch(
+  () => filters.value.search,
+  (newValue) => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
     }
+    searchTimeout = setTimeout(() => {
+      fetchItems()
+    }, 300)
+  },
+)
 
-    return res.json().then(function (json) {
-      error.value = json.error
-      errors.value = json.errors
+async function fetchItems() {
+  httpClient
+    .get('/contents', {
+      params: {
+        page: pagination.value.currentPage,
+        limit: pagination.value.limit,
+        watched: filters.value.watched,
+        name: filters.value.search,
+        genres: genres.value.join(','),
+      },
     })
-  }
+    .catch(function (error) {
+      if (error.response.status === 401) {
+        store.signOut()
+        router.push({ name: 'login' })
+      }
 
-  contents.value = await res.json()
+      error.value = error.response.data.error
+      errors.value = error.response.data.errors
+    })
+    .then(function (res) {
+      if (res === undefined) {
+        return
+      }
+
+      contents.value = res.data.data
+      pagination.value.currentPage = res.data.page
+      pagination.value.totalItems = res.data.total
+      pagination.value.limit = res.data.limit
+    })
 }
 
 async function writeDown() {
-  const res = await fetch(import.meta.env.VITE_API_URL + '/contents/write-down', {
-    headers: {
-      Authorization: 'Bearer ' + store.auth?.token,
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-    body: JSON.stringify({
+  httpClient
+    .post('/contents/write-down', {
       name: writeDownInput.name,
       category: writeDownInput.category,
       summary: writeDownInput.summary,
       wish_level: parseInt(writeDownInput.wishLevel),
       genres: writeDownInput.genres,
-    }),
-  })
-
-  if (false === res.ok) {
-    return res.json().then(function (json) {
-      error.value = json.error
-      errors.value = json.errors
     })
-  }
-
-  toggleModal('write-down-modal')
-  feed()
+    .catch(function (error) {
+      error.value = error.response.error
+      errors.value = error.response.errors
+    })
+    .then(function () {
+      toggleModal('write-down-modal')
+      fetchItems()
+    })
 }
 
 async function details(content: Content) {
-  const res = await fetch(import.meta.env.VITE_API_URL + '/contents/' + content.id, {
-    headers: {
-      Authorization: 'Bearer ' + store.auth?.token,
-    },
-  })
+  httpClient
+    .get('/contents/' + content.id)
+    .catch(function (error) {
+      if (error.response.status === 401) {
+        store.signOut()
+        router.push({ name: 'login' })
+      }
 
-  if (false === res.ok) {
-    return res.json().then(function (json) {
-      error.value = json.error
-      errors.value = json.errors
+      error.value = error.response.data.error
+      errors.value = error.response.data.errors
     })
-  }
-
-  selectedContent.value = await res.json()
-  toggleModal('details-modal')
+    .then(async function (res) {
+      if (res === undefined) {
+        return
+      }
+      selectedContent.value = res.data.data
+      toggleModal('details-modal')
+    })
 }
 
 async function remove() {
-  const res = await fetch(import.meta.env.VITE_API_URL + '/contents/' + selectedContent.value?.id, {
-    headers: {
-      Authorization: 'Bearer ' + store.auth?.token,
-    },
-    method: 'DELETE',
-  })
-
-  if (false === res.ok) {
-    return res.json().then(function (json) {
-      error.value = json.error
-      errors.value = json.errors
+  httpClient
+    .delete('/contents/' + selectedContent.value?.id)
+    .catch(function (error) {
+      error.value = error.response.data.error
+      errors.value = error.response.data.errors
     })
-  }
-
-  toggleModal('details-modal')
-  feed()
+    .then(function () {
+      toggleModal('details-modal')
+      fetchItems()
+    })
 }
 
 async function rate() {
-  const res = await fetch(
-    import.meta.env.VITE_API_URL + '/contents/' + selectedContent.value?.id + '/rate',
-    {
-      headers: {
-        Authorization: 'Bearer ' + store.auth?.token,
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify({
-        rate: parseInt(rateInput.rate),
-        comment: rateInput.comment,
-      }),
-    },
-  )
-
-  if (false === res.ok) {
-    return res.json().then(function (json) {
-      error.value = json.error
-      errors.value = json.errors
+  httpClient
+    .post('/contents/' + selectedContent.value?.id + '/rate', {
+      rate: parseInt(rateInput.rate),
+      comment: rateInput.comment,
     })
+    .catch(function (error) {
+      error.value = error.response.data.error
+      errors.value = error.response.data.errors
+    })
+    .then(function () {
+      toggleModal('details-modal')
+      fetchItems()
+    })
+}
+
+function handleStatusFilter(status: Status) {
+  if (status === Status.NONE) {
+    filters.value.watched = null
+    return
   }
 
-  toggleModal('details-modal')
-  feed()
+  filters.value.watched = status == Status.WATCHED
+
+  fetchItems()
 }
 
 function removeTag(tag: string) {
@@ -193,10 +233,33 @@ function toggleModal(target: string) {
   <main>
     <Topbar />
     <div class="flex justify-end px-6 my-4">
-      <Button type="default" @click="toggleModal('write-down-modal')"> Anotar </Button>
+      <CustomButton theme="default" @click="toggleModal('write-down-modal')"> Anotar </CustomButton>
+    </div>
+    <div class="flex gap-10 px-6 my-4 items-center">
+      <input
+        type="text"
+        placeholder="Pesquisar..."
+        v-model="filters.search"
+        class="border text-sm rounded-lg block w-100 p-2.5 bg-slate-600 border-slate-500 placeholder-slate-400 text-white"
+      />
+      <GenresFilter @update:genres="handleGenreFilter" />
+      <StatusFilter @filter-selected="handleStatusFilter" />
     </div>
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mx-auto px-6">
       <ContentComponent v-for="content in contents" :content="content" @click="details(content)" />
+    </div>
+    <div class="flex justify-center fixed bottom-10 w-full py-4">
+      <Pagination
+        :totalItems="pagination.totalItems"
+        :currentPage="pagination.currentPage"
+        :itemsPerPage="pagination.limit"
+        @update:currentPage="
+          (page: number) => {
+            pagination.currentPage = page
+            fetchItems()
+          }
+        "
+      />
     </div>
     <Modal
       id="write-down-modal"
