@@ -14,10 +14,8 @@ type ListContentsOutput struct {
 
 type ContentListFilters struct {
 	Watched   *bool
-	Category  *string
 	Genres    *[]string
-	Name      *string
-	Summary   *string
+	Search    *string
 	WishLevel *int
 }
 

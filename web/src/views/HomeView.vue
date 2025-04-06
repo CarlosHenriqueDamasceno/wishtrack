@@ -69,16 +69,11 @@ const rateInput: RateInput = reactive({
   comment: '',
 })
 
+const genres = ref<string[]>([])
+
 onMounted(fetchItems)
 
 let searchTimeout: number | null = null
-
-const genres = ref<string[]>([])
-
-const handleGenreFilter = (newGenres: string[]) => {
-  genres.value = newGenres
-  fetchItems()
-}
 
 watch(
   () => filters.value.search,
@@ -99,7 +94,7 @@ async function fetchItems() {
         page: pagination.value.currentPage,
         limit: pagination.value.limit,
         watched: filters.value.watched,
-        name: filters.value.search,
+        search: filters.value.search,
         genres: genres.value.join(','),
       },
     })
@@ -204,6 +199,11 @@ function handleStatusFilter(status: Status) {
   fetchItems()
 }
 
+function handleGenreFilter(newGenres: string[]) {
+  genres.value = newGenres
+  fetchItems()
+}
+
 function removeTag(tag: string) {
   writeDownInput.genres = writeDownInput.genres.filter((el: string) => el !== tag)
 }
@@ -238,7 +238,7 @@ function toggleModal(target: string) {
     <div class="flex gap-10 px-6 my-4 items-center">
       <input
         type="text"
-        placeholder="Pesquisar..."
+        placeholder="Pesquisar por nome, categoria, descrição ou sinopse"
         v-model="filters.search"
         class="border text-sm rounded-lg block w-100 p-2.5 bg-slate-600 border-slate-500 placeholder-slate-400 text-white"
       />

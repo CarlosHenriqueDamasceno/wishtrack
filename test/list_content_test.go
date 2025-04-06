@@ -80,7 +80,7 @@ func (suite *ListTestSuite) mockContents() []*content.WriteDownOutput {
 		Name:      "The Lord of the Rings: The Return of the King",
 		Category:  "book",
 		Genres:    []string{"fantasy", "adventure"},
-		Summary:   "The third movie from the series The Lord of The Rings",
+		Summary:   "The third part from the series The Lord of The Rings",
 		WishLevel: 5,
 		UserID:    suite.user.ID,
 	}
@@ -202,7 +202,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByCategory() {
 	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
-	q.Add("category", "movie")
+	q.Add("search", "movie")
 	req.URL.RawQuery = q.Encode()
 
 	suite.server.ServeHTTP(recorder, req)
@@ -246,7 +246,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByName() {
 	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
-	q.Add("name", "lord")
+	q.Add("search", "lord")
 	req.URL.RawQuery = q.Encode()
 
 	suite.server.ServeHTTP(recorder, req)
@@ -268,7 +268,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsBySummary() {
 	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
-	q.Add("summary", "The third movie")
+	q.Add("search", "The third part")
 	req.URL.RawQuery = q.Encode()
 
 	suite.server.ServeHTTP(recorder, req)

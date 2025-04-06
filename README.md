@@ -6,7 +6,6 @@ A ideia é ser um app onde o usuário possa cadastrar livros/filmes/jogos e cont
 
 - Must Have
 
-  - Lista de conteúdos (filtros: visto/não visto, generos, categorias, search)
   - Integrar com [TMDB](https://www.themoviedb.org/) para pegar sugestões novas
   - Notificação de recomendação
   - Adicionar link/fonte do conteúdo

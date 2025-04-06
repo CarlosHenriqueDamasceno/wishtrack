@@ -158,17 +158,15 @@ func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, paginat
 			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
 		FROM contents
 		WHERE user_id = $1
-		AND (category ILIKE '%' || $2 || '%' OR $2 IS NULL)
+		AND (category ILIKE '%' || $2 || '%' OR name ILIKE '%' || $2 || '%' OR summary ILIKE '%' || $2 || '%' OR $2 IS NULL)
 		AND (genres && $3 OR $3 IS NULL)
-		AND (name ILIKE '%' || $4 || '%' OR $4 IS NULL)
-		AND (summary ILIKE '%' || $5 || '%' OR $5 IS NULL)
-		AND (wish_level >= $6 OR $6 IS NULL)
+		AND (wish_level >= $4 OR $4 IS NULL)
 		AND (
-			($7 IS TRUE AND rate IS NOT NULL) OR
-			($7 IS FALSE AND rate IS NULL) OR
-			($7 IS NULL)
+			($5 IS TRUE AND rate IS NOT NULL) OR
+			($5 IS FALSE AND rate IS NULL) OR
+			($5 IS NULL)
 		)
-		LIMIT $8 OFFSET $9
+		LIMIT $6 OFFSET $7
 	`
 
 	offset := pagination.Limit * (pagination.Page - 1)
@@ -180,10 +178,8 @@ func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, paginat
 		ctx,
 		query,
 		userId,
-		filters.Category,
+		filters.Search,
 		pq.Array(filters.Genres),
-		filters.Name,
-		filters.Summary,
 		filters.WishLevel,
 		filters.Watched,
 		pagination.Limit,

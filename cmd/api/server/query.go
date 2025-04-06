@@ -24,10 +24,8 @@ func ParsePagination(r *http.Request) query.PaginationInput {
 func ParseContentFilters(r *http.Request) content.ContentListFilters {
 	return content.ContentListFilters{
 		Watched:   parseBool("watched", r),
-		Category:  parseString("category", r),
+		Search:    parseString("search", r),
 		Genres:    parseGenres(r),
-		Name:      parseString("name", r),
-		Summary:   parseString("summary", r),
 		WishLevel: parseInt("wishLevel", r),
 	}
 }
