@@ -1,7 +1,22 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRouter } from 'vue-router'
+import { useLoginStore } from './stores/auth'
+import { setUnauthorizedErrorHandler } from './http/client'
+
+const store = useLoginStore()
+const router = useRouter()
+
+setUnauthorizedErrorHandler(() => {
+  store.signOut()
+  router.push({ name: 'login' })
+})
 </script>
 
 <template>
-  <RouterView />
+  <Suspense>
+    <RouterView />
+    <template #fallback>
+      <div class="loading">Loading...</div>
+    </template>
+  </Suspense>
 </template>

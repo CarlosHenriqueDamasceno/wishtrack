@@ -12,6 +12,7 @@ import StatusFilter from '@/components/StatusFilter.vue'
 import GenresFilter from '@/components/GenresFilter.vue'
 import { Status } from '@/types/status'
 import httpClient from '@/http/client'
+import { useDefaultErrorHandlers } from '@/error/handler'
 
 interface Errors {
   [index: string]: string[]
@@ -98,12 +99,7 @@ async function fetchItems() {
         genres: genres.value.join(','),
       },
     })
-    .catch(function (error) {
-      if (error.response.status === 401) {
-        store.signOut()
-        router.push({ name: 'login' })
-      }
-
+    .catch((error) => {
       error.value = error.response.data.error
       errors.value = error.response.data.errors
     })
@@ -128,7 +124,7 @@ async function writeDown() {
       wish_level: parseInt(writeDownInput.wishLevel),
       genres: writeDownInput.genres,
     })
-    .catch(function (error) {
+    .catch((error) => {
       error.value = error.response.error
       errors.value = error.response.errors
     })
@@ -141,7 +137,7 @@ async function writeDown() {
 async function details(content: Content) {
   httpClient
     .get('/contents/' + content.id)
-    .catch(function (error) {
+    .catch((error) => {
       if (error.response.status === 401) {
         store.signOut()
         router.push({ name: 'login' })
@@ -162,7 +158,7 @@ async function details(content: Content) {
 async function remove() {
   httpClient
     .delete('/contents/' + selectedContent.value?.id)
-    .catch(function (error) {
+    .catch((error) => {
       error.value = error.response.data.error
       errors.value = error.response.data.errors
     })
@@ -178,7 +174,7 @@ async function rate() {
       rate: parseInt(rateInput.rate),
       comment: rateInput.comment,
     })
-    .catch(function (error) {
+    .catch((error) => {
       error.value = error.response.data.error
       errors.value = error.response.data.errors
     })
