@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/suggestion"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/validation"
 	"github.com/google/uuid"
@@ -115,7 +117,7 @@ func (api *Api) handleFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := api.contentService.Feed(r.Context(), user.ID)
+	out, err := api.contentService.Feed(r.Context(), user.ID, suggestion.DefaultNumberOfSuggestions)
 	if err != nil {
 		api.handleError(w, r, "error getting feed", err)
 		return
@@ -295,6 +297,41 @@ func (api *Api) handleDeleteContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	RespondJSON(nil, http.StatusNoContent, w)
+}
+
+// Find content godoc
+//
+//	@Summary	suggestions
+//	@Tags		content
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	content.FindContentOutput	"List of suggestions"
+//	@Router		/suggestions [get]
+//	@Security	ApiKeyAuth
+func (api *Api) handleSuggestions(w http.ResponseWriter, r *http.Request) {
+	user, err := api.GetLoggedUser(w, r)
+	if err != nil {
+		api.handleError(w, r, "invalid token", err)
+		return
+	}
+
+	quantity := suggestion.DefaultNumberOfSuggestions
+	param := r.URL.Query().Get("quantity")
+
+	if param != "" {
+		intParam, err := strconv.Atoi(param)
+		if err == nil {
+			quantity = intParam
+		}
+	}
+
+	out, err := api.suggestionService.Suggest(r.Context(), quantity, user.ID)
+	if err != nil {
+		api.handleError(w, r, "error finding getting suggestions", err)
+		return
+	}
+
+	RespondJSON(out, http.StatusOK, w)
 }
 
 func (api *Api) handleError(w http.ResponseWriter, r *http.Request, logMessage string, err error) {

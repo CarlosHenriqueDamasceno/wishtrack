@@ -37,18 +37,19 @@ func (suite *FindContentTestSuite) SetupTest() {
 		time.Minute,
 	)
 
-	suite.userService = user.NewService(userRepository, auth)
-	suite.contentService = content.NewService(contentRepository)
+	suite.UserService = user.NewService(userRepository, auth)
+	suite.ContentService = content.NewService(contentRepository)
 
 	suite.server = server.NewApi(
 		http.NewServeMux(),
 		&server.Config{},
 		slog.Default(),
-		suite.userService,
-		suite.contentService,
+		suite.UserService,
+		suite.ContentService,
+		nil,
 	)
 
-	suite.mockUser(DefaultUserEmail, DefaultPassword)
+	suite.MockUser(DefaultUserEmail, DefaultPassword)
 }
 
 func (suite *FindContentTestSuite) TearDownTest() {
@@ -68,10 +69,10 @@ func (suite *FindContentTestSuite) mockContent() *content.WriteDownOutput {
 		Genres:    []string{"fantasy", "adventure"},
 		Summary:   "The third movie from the series The Lord of The Rings",
 		WishLevel: 5,
-		UserID:    suite.user.ID,
+		UserID:    suite.User.ID,
 	}
 
-	out, err := suite.contentService.WriteDown(ctx, movie)
+	out, err := suite.ContentService.WriteDown(ctx, movie)
 	suite.Assert().Nil(err)
 	return out
 }
@@ -82,7 +83,7 @@ func (suite *FindContentTestSuite) TestFindAContent() {
 	recorder := httptest.NewRecorder()
 	url := fmt.Sprintf("%s/%s", findBaseUrl, c.ID.String())
 	req := httptest.NewRequest(http.MethodGet, url, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)

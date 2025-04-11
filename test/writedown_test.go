@@ -37,18 +37,19 @@ func (suite *WriteDownTestSuite) SetupTest() {
 		time.Minute,
 	)
 
-	suite.userService = user.NewService(userRepository, auth)
-	suite.contentService = content.NewService(contentRepository)
+	suite.UserService = user.NewService(userRepository, auth)
+	suite.ContentService = content.NewService(contentRepository)
 
 	suite.server = server.NewApi(
 		http.NewServeMux(),
 		&server.Config{},
 		slog.Default(),
-		suite.userService,
-		suite.contentService,
+		suite.UserService,
+		suite.ContentService,
+		nil,
 	)
 
-	suite.mockUser(DefaultUserEmail, DefaultPassword)
+	suite.MockUser(DefaultUserEmail, DefaultPassword)
 }
 
 func (suite *WriteDownTestSuite) TearDownTest() {
@@ -76,7 +77,7 @@ func (suite *WriteDownTestSuite) TestShouldFailToWriteDownWithoutName() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, writeDownBaseUrl, PrepareBody(input, &suite.Suite))
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusUnprocessableEntity, recorder.Result().StatusCode)
@@ -111,7 +112,7 @@ func (suite *WriteDownTestSuite) TestShouldFailToWriteDownInvalidName() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, writeDownBaseUrl, PrepareBody(input, &suite.Suite))
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusUnprocessableEntity, recorder.Result().StatusCode)
@@ -145,7 +146,7 @@ func (suite *WriteDownTestSuite) TestShouldFailToWriteDownWithInvalidWishLevel()
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, writeDownBaseUrl, PrepareBody(input, &suite.Suite))
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusUnprocessableEntity, recorder.Result().StatusCode)
@@ -180,7 +181,7 @@ func (suite *WriteDownTestSuite) TestShouldWriteDown() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, writeDownBaseUrl, PrepareBody(input, &suite.Suite))
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusCreated, recorder.Result().StatusCode)

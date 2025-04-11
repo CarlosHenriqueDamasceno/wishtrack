@@ -36,18 +36,19 @@ func (suite *FeedTestSuite) SetupTest() {
 		time.Minute,
 	)
 
-	suite.userService = user.NewService(userRepository, auth)
-	suite.contentService = content.NewService(contentRepository)
+	suite.UserService = user.NewService(userRepository, auth)
+	suite.ContentService = content.NewService(contentRepository)
 
 	suite.server = server.NewApi(
 		http.NewServeMux(),
 		&server.Config{},
 		slog.Default(),
-		suite.userService,
-		suite.contentService,
+		suite.UserService,
+		suite.ContentService,
+		nil,
 	)
 
-	suite.mockUser(DefaultUserEmail, DefaultPassword)
+	suite.MockUser(DefaultUserEmail, DefaultPassword)
 }
 
 func (suite *FeedTestSuite) TearDownTest() {
@@ -68,7 +69,7 @@ func (suite *FeedTestSuite) mockContents() []*content.WriteDownOutput {
 		Genres:    []string{"fantasy", "adventure"},
 		Summary:   "The third movie from the series The Lord of The Rings",
 		WishLevel: 5,
-		UserID:    suite.user.ID,
+		UserID:    suite.User.ID,
 	}
 
 	lessWished := &content.WriteDownInput{
@@ -78,14 +79,14 @@ func (suite *FeedTestSuite) mockContents() []*content.WriteDownOutput {
 		Summary: `Inspired by the books of Stephen E. Ambrose and accounts of multiple soldiers in a single
 		family, such as the Niland brothers, being killed in action`,
 		WishLevel: 2,
-		UserID:    suite.user.ID,
+		UserID:    suite.User.ID,
 	}
 
-	out, err := suite.contentService.WriteDown(ctx, lessWished)
+	out, err := suite.ContentService.WriteDown(ctx, lessWished)
 	suite.Assert().Nil(err)
 	output = append(output, out)
 
-	out, err = suite.contentService.WriteDown(ctx, mostWished)
+	out, err = suite.ContentService.WriteDown(ctx, mostWished)
 	suite.Assert().Nil(err)
 	output = append(output, out)
 
@@ -97,7 +98,7 @@ func (suite *FeedTestSuite) TestGetFeed() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, feedBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)
@@ -126,17 +127,17 @@ func (suite *FeedTestSuite) TestFeedShouldNotIncludeRatedContents() {
 
 	input := &content.RateContentInput{
 		ID:      contents[0].ID,
-		UserID:  suite.user.ID,
+		UserID:  suite.User.ID,
 		Rate:    5,
 		Comment: "Absolute Cinema!!!!",
 	}
 
-	err := suite.contentService.Rate(context.Background(), input)
+	err := suite.ContentService.Rate(context.Background(), input)
 	suite.Assert().Nil(err)
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, feedBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)

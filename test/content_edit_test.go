@@ -38,18 +38,19 @@ func (suite *ContentEditTestSuite) SetupTest() {
 		time.Minute,
 	)
 
-	suite.userService = user.NewService(userRepository, auth)
-	suite.contentService = content.NewService(contentRepository)
+	suite.UserService = user.NewService(userRepository, auth)
+	suite.ContentService = content.NewService(contentRepository)
 
 	suite.server = server.NewApi(
 		http.NewServeMux(),
 		&server.Config{},
 		slog.Default(),
-		suite.userService,
-		suite.contentService,
+		suite.UserService,
+		suite.ContentService,
+		nil,
 	)
 
-	suite.mockUser(DefaultUserEmail, DefaultPassword)
+	suite.MockUser(DefaultUserEmail, DefaultPassword)
 }
 
 func (suite *ContentEditTestSuite) TearDownTest() {
@@ -69,10 +70,10 @@ func (suite *ContentEditTestSuite) mockContent() *content.WriteDownOutput {
 		Genres:    []string{"fantasy", "adventure"},
 		Summary:   "The third movie from the series The Lord of The Rings",
 		WishLevel: 5,
-		UserID:    suite.user.ID,
+		UserID:    suite.User.ID,
 	}
 
-	out, err := suite.contentService.WriteDown(ctx, movie)
+	out, err := suite.ContentService.WriteDown(ctx, movie)
 	suite.Assert().Nil(err)
 	return out
 }
@@ -95,7 +96,7 @@ func (suite *ContentEditTestSuite) TestContentNotFound() {
 	recorder := httptest.NewRecorder()
 	url := fmt.Sprintf("%s/%s", editBaseUrl, uuid.New())
 	req := httptest.NewRequest(http.MethodPut, url, PrepareBody(input, &suite.Suite))
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusNotFound, recorder.Result().StatusCode)
@@ -121,7 +122,7 @@ func (suite *ContentEditTestSuite) TestShouldEditAContent() {
 	recorder := httptest.NewRecorder()
 	url := fmt.Sprintf("%s/%s", editBaseUrl, content.ID.String())
 	req := httptest.NewRequest(http.MethodPut, url, PrepareBody(input, &suite.Suite))
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusOK, recorder.Result().StatusCode)

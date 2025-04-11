@@ -53,6 +53,7 @@ func (suite *LoginTestSuite) SetupTest() {
 		slog.Default(),
 		suite.userService,
 		nil,
+		nil,
 	)
 }
 
@@ -64,7 +65,7 @@ func (suite *LoginTestSuite) TearDownSuite() {
 	suite.DestroyDatabase(context.Background())
 }
 
-func (suite *LoginTestSuite) mockUser(email, password string) *user.RegisterOutput {
+func (suite *LoginTestSuite) MockUser(email, password string) *user.RegisterOutput {
 	input := user.RegisterInput{
 		Name:     "Carlos",
 		Email:    email,
@@ -105,7 +106,7 @@ func (suite *LoginTestSuite) TestShouldFailToLoginWithInvalidEmail() {
 func (suite *LoginTestSuite) TestShouldFailToLoginWithWrongPassword() {
 	email := "carlos@wishtrack.com"
 	password := "12346578"
-	suite.mockUser(email, password)
+	suite.MockUser(email, password)
 
 	input := struct {
 		Email    string `json:"email"`
@@ -135,7 +136,7 @@ func (suite *LoginTestSuite) TestShouldFailToLoginWithWrongPassword() {
 func (suite *LoginTestSuite) TestShouldLogin() {
 	email := "carlos@wishtrack.com"
 	password := "12346578"
-	suite.mockUser(email, password)
+	suite.MockUser(email, password)
 
 	input := struct {
 		Email    string `json:"email"`

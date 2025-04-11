@@ -109,18 +109,18 @@ func (r *DatabaseRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID) ([]*Content, error) {
+func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID, limit int) ([]*Content, error) {
 	query := `
 		SELECT
 			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
 		FROM contents
-		WHERE user_id = $1 AND rate IS NULL ORDER BY wish_level DESC LIMIT 5
+		WHERE user_id = $1 AND rate IS NULL ORDER BY wish_level DESC LIMIT $2
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryExecTimeout)
 	defer cancel()
 
-	rows, err := r.connection.QueryContext(ctx, query, userId)
+	rows, err := r.connection.QueryContext(ctx, query, userId, limit)
 	if err != nil {
 		return nil, database.ParseDatabaseError(err)
 	}

@@ -36,18 +36,19 @@ func (suite *DeleteContentTestSuite) SetupTest() {
 		time.Minute,
 	)
 
-	suite.userService = user.NewService(userRepository, auth)
-	suite.contentService = content.NewService(contentRepository)
+	suite.UserService = user.NewService(userRepository, auth)
+	suite.ContentService = content.NewService(contentRepository)
 
 	suite.server = server.NewApi(
 		http.NewServeMux(),
 		&server.Config{},
 		slog.Default(),
-		suite.userService,
-		suite.contentService,
+		suite.UserService,
+		suite.ContentService,
+		nil,
 	)
 
-	suite.mockUser(DefaultUserEmail, DefaultPassword)
+	suite.MockUser(DefaultUserEmail, DefaultPassword)
 }
 
 func (suite *DeleteContentTestSuite) TearDownTest() {
@@ -66,10 +67,10 @@ func (suite *DeleteContentTestSuite) mockContent() *content.WriteDownOutput {
 		Genres:    []string{"fantasy", "adventure"},
 		Summary:   "The third movie from the series The Lord of The Rings",
 		WishLevel: 5,
-		UserID:    suite.user.ID,
+		UserID:    suite.User.ID,
 	}
 
-	out, err := suite.contentService.WriteDown(ctx, movie)
+	out, err := suite.ContentService.WriteDown(ctx, movie)
 	suite.Assert().Nil(err)
 	return out
 
@@ -85,11 +86,11 @@ func (suite *DeleteContentTestSuite) TestDeleteAContent() {
 	recorder := httptest.NewRecorder()
 	url := fmt.Sprintf("%s/%s", deleteBaseUrl, ct.ID.String())
 	req := httptest.NewRequest(http.MethodDelete, url, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
 	suite.Assert().Equal(http.StatusNoContent, recorder.Result().StatusCode)
 
-	_, err := suite.contentService.Find(context.Background(), ct.ID, suite.user.ID)
+	_, err := suite.ContentService.Find(context.Background(), ct.ID, suite.User.ID)
 	suite.Assert().ErrorIs(err, content.ErrContentNotFound)
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/server"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/suggestion"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -121,14 +122,14 @@ func (suite *DatabaseSuite) AssertDatabaseCount(expectedCount int, table string,
 
 type LoggedRequestBaseSuite struct {
 	DatabaseSuite
-	server         *server.Api
-	userService    user.Service
-	contentService content.Service
-	user           *user.RegisterOutput
+	server            *server.Api
+	UserService       user.Service
+	ContentService    content.Service
+	SuggestionService suggestion.Service
+	User              *user.RegisterOutput
 }
 
-func (suite *LoggedRequestBaseSuite) mockUser(email, password string) {
-
+func (suite *LoggedRequestBaseSuite) MockUser(email, password string) {
 	userInput := &user.RegisterInput{
 		Name:     "Carlos",
 		Email:    email,
@@ -136,18 +137,18 @@ func (suite *LoggedRequestBaseSuite) mockUser(email, password string) {
 	}
 
 	ctx := context.Background()
-	registeredUser, err := suite.userService.Register(ctx, userInput)
+	registeredUser, err := suite.UserService.Register(ctx, userInput)
 	suite.Assert().Nil(err, "Should register user")
-	suite.user = registeredUser
+	suite.User = registeredUser
 }
 
-func (suite *LoggedRequestBaseSuite) mockToken(email, password string, req *http.Request) {
+func (suite *LoggedRequestBaseSuite) MockToken(email, password string, req *http.Request) {
 	loginInput := &user.LoginInput{
 		Email:    email,
 		Password: password,
 	}
 
-	token, err := suite.userService.Login(context.Background(), loginInput)
+	token, err := suite.UserService.Login(context.Background(), loginInput)
 	suite.Assert().Nil(err, "Should login")
 
 	req.Header.Add("Authorization", "Bearer "+token.Token)

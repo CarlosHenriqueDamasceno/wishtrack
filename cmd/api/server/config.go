@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	Address  string
-	Env      string
-	Auth     AuthConfig
-	Database DatabaseConfig
+	Address   string
+	Env       string
+	Auth      AuthConfig
+	Database  DatabaseConfig
+	Providers SuggestionProvidersConfig
 }
 
 type DatabaseConfig struct {
@@ -30,6 +31,13 @@ type AuthConfig struct {
 	Exp time.Duration
 }
 
+type SuggestionProvidersConfig struct {
+	TMDB struct {
+		ApiKey  string
+		BaseUrl string
+	}
+}
+
 func LoadEnv() *Config {
 	return &Config{
 		Address: env.GetString("ADDR", ":8080"),
@@ -45,6 +53,15 @@ func LoadEnv() *Config {
 			Iss: env.GetString("AUTH_ISS", "wishtrack"),
 			Aud: env.GetString("AUTH_AUD", "wishtrack"),
 			Exp: env.GetDuration("AUTH_EXP", time.Minute*30),
+		},
+		Providers: SuggestionProvidersConfig{
+			TMDB: struct {
+				ApiKey  string
+				BaseUrl string
+			}{
+				ApiKey:  env.GetString("TMDB_API_KEY", ""),
+				BaseUrl: env.GetString("TMDB_BASE_URL", "https://api.themoviedb.org/3"),
+			},
 		},
 	}
 }

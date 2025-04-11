@@ -20,8 +20,8 @@ type output struct {
 
 type FeedOutput []output
 
-func (service *service) Feed(ctx context.Context, id uuid.UUID) (*FeedOutput, error) {
-	contents, err := service.repository.Feed(ctx, id)
+func (service *service) Feed(ctx context.Context, id uuid.UUID, limit int) (*FeedOutput, error) {
+	contents, err := service.repository.Feed(ctx, id, limit)
 	if err != nil {
 		return nil, err
 	}

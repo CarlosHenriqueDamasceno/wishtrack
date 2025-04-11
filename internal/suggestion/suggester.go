@@ -1,38 +1,52 @@
 package suggestion
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
+	"github.com/google/uuid"
 )
 
 var (
-	ErrUnauthorized         = fmt.Errorf("unauthorized")
-	ErrNotEnoughSuggestions = fmt.Errorf("not enough suggestions")
-	ErrFailContactProvider  = fmt.Errorf("failed to contact provider")
-	ErrGenericRequestError  = fmt.Errorf("generic request error")
+	ErrUnauthorized        = fmt.Errorf("could not unauthorize in provider")
+	ErrFailContactProvider = fmt.Errorf("failed to contact provider")
+	ErrGenericRequestError = fmt.Errorf("generic request error")
 )
 
 type SuggesterType string
 
 const (
-	TMDB SuggesterType = "tmdb"
+	TMDB                       SuggesterType = "tmdb"
+	PERSONAL                   SuggesterType = "personal"
+	DefaultNumberOfSuggestions int           = 5
 )
 
 type Suggestion struct {
-	Name     string
-	Category string
-	Genres   []string
-	Summary  string
+	Name     string   `json:"name"`
+	Category string   `json:"category"`
+	Genres   []string `json:"genres"`
+	Summary  string   `json:"summary"`
 }
 
 type Suggester interface {
-	Suggest(int) ([]Suggestion, error)
+	Suggest(context.Context, int, uuid.UUID) ([]Suggestion, error)
+	Name() string
+	Type() SuggesterType
 }
 
-func NewSuggester(suggesterType SuggesterType, client *http.Client, baseURL string) (Suggester, error) {
+func NewSuggester(
+	suggesterType SuggesterType,
+	client *http.Client,
+	baseURL string,
+	repository content.Repository,
+) (Suggester, error) {
 	switch suggesterType {
 	case TMDB:
 		return NewTMDBSuggester(client, baseURL), nil
+	case PERSONAL:
+		return NewPersonalSuggester(repository), nil
 	default:
 		return nil, fmt.Errorf("unsupported suggester type: %s", suggesterType)
 	}

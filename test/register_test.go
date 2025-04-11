@@ -37,6 +37,7 @@ func (suite *RegisterTestSuite) SetupTest() {
 		slog.Default(),
 		suite.userService,
 		nil,
+		nil,
 	)
 }
 

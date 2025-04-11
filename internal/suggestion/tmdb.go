@@ -1,9 +1,12 @@
 package suggestion
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -42,7 +45,7 @@ func NewTMDBSuggester(client *http.Client, baseUrl string) Suggester {
 	}
 }
 
-func (s *TMDBSuggester) Suggest(numberOfSuggestions int) ([]Suggestion, error) {
+func (s *TMDBSuggester) Suggest(_ context.Context, numberOfSuggestions int, _ uuid.UUID) ([]Suggestion, error) {
 	res, err := s.doRequest(SuggestionsUrl)
 	if err != nil {
 		return nil, err
@@ -53,10 +56,6 @@ func (s *TMDBSuggester) Suggest(numberOfSuggestions int) ([]Suggestion, error) {
 
 	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
 		return nil, err
-	}
-
-	if len(response.Results) < numberOfSuggestions {
-		return nil, ErrNotEnoughSuggestions
 	}
 
 	tmdbGenres, err := s.fetchGenres()
@@ -76,6 +75,14 @@ func (s *TMDBSuggester) Suggest(numberOfSuggestions int) ([]Suggestion, error) {
 	}
 
 	return suggestions[:numberOfSuggestions], nil
+}
+
+func (s *TMDBSuggester) Name() string {
+	return "The movie database"
+}
+
+func (s *TMDBSuggester) Type() SuggesterType {
+	return TMDB
 }
 
 func (s *TMDBSuggester) fetchGenres() ([]tmdbGenre, error) {

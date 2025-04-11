@@ -57,18 +57,19 @@ func (suite *ListTestSuite) SetupTest() {
 		time.Minute,
 	)
 
-	suite.userService = user.NewService(userRepository, auth)
-	suite.contentService = content.NewService(contentRepository)
+	suite.UserService = user.NewService(userRepository, auth)
+	suite.ContentService = content.NewService(contentRepository)
 
 	suite.server = server.NewApi(
 		http.NewServeMux(),
 		&server.Config{},
 		slog.Default(),
-		suite.userService,
-		suite.contentService,
+		suite.UserService,
+		suite.ContentService,
+		nil,
 	)
 
-	suite.mockUser(DefaultUserEmail, DefaultPassword)
+	suite.MockUser(DefaultUserEmail, DefaultPassword)
 }
 
 func (suite *ListTestSuite) TearDownTest() {
@@ -89,7 +90,7 @@ func (suite *ListTestSuite) mockContents() []*content.WriteDownOutput {
 		Genres:    []string{"fantasy", "adventure"},
 		Summary:   "The third part from the series The Lord of The Rings",
 		WishLevel: 5,
-		UserID:    suite.user.ID,
+		UserID:    suite.User.ID,
 	}
 
 	secondContent := &content.WriteDownInput{
@@ -99,14 +100,14 @@ func (suite *ListTestSuite) mockContents() []*content.WriteDownOutput {
 		Summary: `Inspired by the books of Stephen E. Ambrose and accounts of multiple soldiers in a single
 		family, such as the Niland brothers, being killed in action`,
 		WishLevel: 2,
-		UserID:    suite.user.ID,
+		UserID:    suite.User.ID,
 	}
 
-	out, err := suite.contentService.WriteDown(ctx, firstContent)
+	out, err := suite.ContentService.WriteDown(ctx, firstContent)
 	suite.Assert().Nil(err)
 	output = append(output, out)
 
-	err = suite.contentService.Rate(ctx, &content.RateContentInput{
+	err = suite.ContentService.Rate(ctx, &content.RateContentInput{
 		UserID:  firstContent.UserID,
 		ID:      out.ID,
 		Rate:    5,
@@ -114,7 +115,7 @@ func (suite *ListTestSuite) mockContents() []*content.WriteDownOutput {
 	})
 	suite.Assert().Nil(err)
 
-	out, err = suite.contentService.WriteDown(ctx, secondContent)
+	out, err = suite.ContentService.WriteDown(ctx, secondContent)
 	suite.Assert().Nil(err)
 	output = append(output, out)
 
@@ -129,7 +130,7 @@ func (suite *ListTestSuite) TestShouldGetPaginatedContents() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
 	q.Add("limit", strconv.FormatUint(expectedLimit, 10))
@@ -157,7 +158,7 @@ func (suite *ListTestSuite) TestShouldGetSecondPageOfContents() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
 	q.Add("limit", strconv.FormatUint(expectedLimit, 10))
@@ -184,7 +185,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByWatched() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
 	q.Add("watched", "true")
@@ -206,7 +207,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByCategory() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
 	q.Add("search", "movie")
@@ -228,7 +229,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByGenres() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
 	q.Add("genres", "fantasy")
@@ -250,7 +251,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByName() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
 	q.Add("search", "lord")
@@ -272,7 +273,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsBySummary() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
 	q.Add("search", "The third part")
@@ -294,7 +295,7 @@ func (suite *ListTestSuite) TestShouldFilterContentsByMinWishLevel() {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, listBaseUrl, nil)
-	suite.mockToken(DefaultUserEmail, DefaultPassword, req)
+	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	q := req.URL.Query()
 	q.Add("wishLevel", "3")

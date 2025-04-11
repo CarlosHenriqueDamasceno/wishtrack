@@ -23,5 +23,7 @@ func (a *Api) setupRoutes() {
 	a.router.HandleFunc("DELETE /api/v1/contents/{id}", a.CorsMiddleware(a.AuthTokenMiddleware(a.handleDeleteContent)))
 	a.router.HandleFunc("POST /api/v1/contents/{id}/rate", a.CorsMiddleware(a.AuthTokenMiddleware(a.handleRateContent)))
 
+	a.router.HandleFunc("GET /api/v1/suggestions", a.CorsMiddleware(a.AuthTokenMiddleware(a.handleSuggestions)))
+
 	a.router.HandleFunc("OPTIONS /", a.CorsMiddleware(func(w http.ResponseWriter, r *http.Request) {}))
 }

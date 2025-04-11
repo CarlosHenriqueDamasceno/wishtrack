@@ -8,6 +8,7 @@ import (
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/suggestion"
 	httphelper "github.com/CarlosHenriqueDamasceno/wishtrack/pkg/http"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -199,10 +200,10 @@ func TestItShouldProvideSuggestionsFromTMDB(t *testing.T) {
 	client, server := mockTMDBService()
 	defer server.Close()
 
-	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL)
+	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL, nil)
 	assert.Nil(t, err)
 
-	result, err := suggester.Suggest(len(tmdbResponses.Results))
+	result, err := suggester.Suggest(t.Context(), len(tmdbResponses.Results), uuid.UUID{})
 	assert.Nil(t, err)
 
 	assert.Equal(t, len(tmdbResponses.Results), len(result))
@@ -220,39 +221,22 @@ func TestShouldReturnAuthorizationErrorIfTokenIsInvalid(t *testing.T) {
 
 	client.Transport = httphelper.NewAuthenticatedTransport("invalid_token")
 
-	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL)
+	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL, nil)
 	assert.Nil(t, err)
 
-	_, err = suggester.Suggest(len(tmdbResponses.Results))
+	_, err = suggester.Suggest(t.Context(), len(tmdbResponses.Results), uuid.UUID{})
 	assert.NotNil(t, err)
 	assert.ErrorIs(t, err, suggestion.ErrUnauthorized)
-}
-
-func TestShouldReturnNotEnoughSuggestionsError(t *testing.T) {
-	client, server := mockTMDBService()
-	defer server.Close()
-
-	suggestionsCount := len(tmdbResponses.Results)
-
-	tmdbResponses.TotalResults = suggestionsCount
-	tmdbResponses.Results = tmdbResponses.Results[:suggestionsCount-1]
-
-	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL)
-	assert.Nil(t, err)
-
-	_, err = suggester.Suggest(suggestionsCount)
-	assert.NotNil(t, err)
-	assert.ErrorIs(t, err, suggestion.ErrNotEnoughSuggestions)
 }
 
 func TestShouldReturnProviderConnectionError(t *testing.T) {
 	client, server := mockTMDBService()
 	server.Close()
 
-	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL)
+	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL, nil)
 	assert.Nil(t, err)
 
-	_, err = suggester.Suggest(len(tmdbResponses.Results))
+	_, err = suggester.Suggest(t.Context(), len(tmdbResponses.Results), uuid.UUID{})
 	assert.NotNil(t, err)
 	assert.ErrorIs(t, err, suggestion.ErrFailContactProvider)
 }
@@ -265,10 +249,10 @@ func TestShouldReturnGenericRequestError(t *testing.T) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 
-	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL)
+	suggester, err := suggestion.NewSuggester(suggestion.TMDB, client, server.URL, nil)
 	assert.Nil(t, err)
 
-	_, err = suggester.Suggest(len(tmdbResponses.Results))
+	_, err = suggester.Suggest(t.Context(), len(tmdbResponses.Results), uuid.UUID{})
 	assert.NotNil(t, err)
 	assert.ErrorIs(t, err, suggestion.ErrGenericRequestError)
 }

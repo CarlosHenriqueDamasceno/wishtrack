@@ -12,8 +12,10 @@ import (
 
 	"github.com/CarlosHenriqueDamasceno/wishtrack/cmd/api/server"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/content"
+	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/suggestion"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/internal/user"
 	"github.com/CarlosHenriqueDamasceno/wishtrack/pkg/database"
+	httputils "github.com/CarlosHenriqueDamasceno/wishtrack/pkg/http"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -39,7 +41,34 @@ func run(conf *server.Config, logger *slog.Logger) error {
 	userService := user.NewService(userRepository, jwtAuth)
 	contentService := content.NewService(contentRepository)
 
-	api := server.NewApi(http.NewServeMux(), conf, logger, userService, contentService)
+	client := &http.Client{
+		Transport: httputils.NewAuthenticatedTransport(conf.Providers.TMDB.ApiKey),
+	}
+
+	tmdbSuggester, err := suggestion.NewSuggester(
+		suggestion.TMDB,
+		client,
+		conf.Providers.TMDB.BaseUrl,
+		contentRepository,
+	)
+	if err != nil {
+		logger.Error("Error creating TMDB suggester", "error", err)
+	}
+
+	personalSuggester, err := suggestion.NewSuggester(
+		suggestion.PERSONAL,
+		client,
+		conf.Providers.TMDB.BaseUrl,
+		contentRepository,
+	)
+	if err != nil {
+		logger.Error("Error creating TMDB suggester", "error", err)
+	}
+
+	suggesters := []suggestion.Suggester{tmdbSuggester, personalSuggester}
+	suggestionService := suggestion.NewService(suggesters)
+
+	api := server.NewApi(http.NewServeMux(), conf, logger, userService, contentService, suggestionService)
 	server := http.Server{
 		Addr:         conf.Address,
 		Handler:      api,

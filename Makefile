@@ -13,7 +13,7 @@ run: build
 
 .PHONY: tests
 tests:
-	@go test ./test/... -v
+	@go test ./... -v
 
 .PHONY: migrate-create
 migration:
