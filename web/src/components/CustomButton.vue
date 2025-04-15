@@ -19,7 +19,7 @@ const buttonClass = computed(() => {
   }
 
   if (props.theme === 'default') {
-    return 'bg-blue-500 text-white border-blue-500 hover:bg-blue-700 hover:border-blue-700 focus:ring-blue-100'
+    return 'bg-white text-black hover:bg-zinc-200'
   }
 
   if (props.theme === 'secondary') {
@@ -32,7 +32,7 @@ const buttonClass = computed(() => {
   <button
     :disabled="disabled"
     type="button"
-    class="border cursor-pointer font-bold rounded-lg text-sm px-5 py-2.5 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed"
+    class="px-4 py-2 cursor-pointer font-semibold rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
     :class="buttonClass"
   >
     <slot></slot>

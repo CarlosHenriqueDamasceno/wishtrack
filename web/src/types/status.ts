@@ -1,5 +1,11 @@
 export enum Status {
-  NONE = 0,
-  WATCHED = 1,
-  NOTWATCHED = 2,
+  UNSAVED,
+  SAVED,
+  RATED,
+}
+
+export const statusName: Record<Status, string> = {
+  [Status.UNSAVED]: 'unsaved',
+  [Status.SAVED]: 'saved',
+  [Status.RATED]: 'rated',
 }

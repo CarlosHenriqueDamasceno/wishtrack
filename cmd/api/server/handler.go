@@ -305,7 +305,7 @@ func (api *Api) handleDeleteContent(w http.ResponseWriter, r *http.Request) {
 //	@Tags		content
 //	@Accept		json
 //	@Produce	json
-//	@Success	200	{object}	content.FindContentOutput	"List of suggestions"
+//	@Success	200	{object}	map[string]suggestion.ProviderResponse	"List of suggestions"
 //	@Router		/suggestions [get]
 //	@Security	ApiKeyAuth
 func (api *Api) handleSuggestions(w http.ResponseWriter, r *http.Request) {

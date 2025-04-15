@@ -23,7 +23,7 @@ func (s *PersonalSuggester) Suggest(ctx context.Context, numberOfSuggestions int
 		return nil, err
 	}
 
-	suggestions := make([]Suggestion, numberOfSuggestions)
+	suggestions := make([]Suggestion, len(contents))
 	for i, content := range contents {
 		suggestions[i] = Suggestion{
 			Name:     string(content.Name),

@@ -14,7 +14,7 @@ function logout() {
 </script>
 
 <template>
-  <header class="bg-slate-900 text-white py-3 px-6 flex justify-between items-center">
+  <header class="text-white flex justify-between items-center">
     <div class="flex items-center">
       <img class="w-10 mr-1" src="../assets/logo.png" alt="" />
       <h1 class="text-lg font-bold hidden md:block">Wishtrack</h1>
@@ -30,11 +30,11 @@ function logout() {
 
         <div
           v-if="isOpen"
-          class="absolute right-0 mt-2 w-32 text-white border rounded-lg bg-slate-800 border-slate-700"
+          class="absolute right-0 mt-2 w-32 text-white border rounded-lg bg-black border-slate-700"
         >
           <button
             @click="logout"
-            class="block cursor-pointer w-full px-4 py-2 text-left rounded-lg hover:bg-slate-500"
+            class="block cursor-pointer w-full px-4 py-2 text-left rounded-lg hover:bg-white/10"
           >
             Sair
           </button>

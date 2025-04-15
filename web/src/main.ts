@@ -6,6 +6,7 @@ import router from './router'
 import axios from 'axios'
 
 import App from './App.vue'
+import { VueQueryPlugin } from '@tanstack/vue-query'
 
 const httpClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -25,6 +26,7 @@ store.use(() => ({
 
 app.use(router)
 app.use(store)
+app.use(VueQueryPlugin)
 app.provide('httpClient', httpClient)
 
 app.mount('#app')

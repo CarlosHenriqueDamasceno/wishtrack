@@ -12,7 +12,6 @@ import StatusFilter from '@/components/StatusFilter.vue'
 import GenresFilter from '@/components/GenresFilter.vue'
 import { Status } from '@/types/status'
 import httpClient from '@/http/client'
-import { useDefaultErrorHandlers } from '@/error/handler'
 
 interface Errors {
   [index: string]: string[]
@@ -345,7 +344,7 @@ function toggleModal(target: string) {
             <span
               v-for="tag in writeDownInput.genres"
               :key="tag"
-              class="bg-blue-600 text-white text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-700"
+              class="bg-blue-600 text-white text-sm font-medium mr-2 px-2.5 py-0.5 rounded-md dark:bg-blue-700"
             >
               {{ tag }}
               <button type="button" class="ml-1 text-white" @click="removeTag(tag)">x</button>
