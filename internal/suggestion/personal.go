@@ -36,7 +36,7 @@ func (s *PersonalSuggester) Suggest(ctx context.Context, numberOfSuggestions int
 }
 
 func (s *PersonalSuggester) Name() string {
-	return "Personal"
+	return "Anotações"
 }
 
 func (s *PersonalSuggester) Type() SuggesterType {

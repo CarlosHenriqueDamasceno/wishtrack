@@ -166,6 +166,7 @@ func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, paginat
 			($5 IS FALSE AND rate IS NULL) OR
 			($5 IS NULL)
 		)
+		ORDER BY created_at DESC
 		LIMIT $6 OFFSET $7
 	`
 

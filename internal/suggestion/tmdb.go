@@ -78,7 +78,7 @@ func (s *TMDBSuggester) Suggest(_ context.Context, numberOfSuggestions int, _ uu
 }
 
 func (s *TMDBSuggester) Name() string {
-	return "The movie database"
+	return "TMDB"
 }
 
 func (s *TMDBSuggester) Type() SuggesterType {
