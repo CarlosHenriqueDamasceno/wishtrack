@@ -15,17 +15,17 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const feedBaseUrl = "/api/v1/contents/feed"
+const contentSuggestionsBaseUrl = "/api/v1/contents/suggestions"
 
-type FeedTestSuite struct {
+type ContentSuggestionsTestSuite struct {
 	LoggedRequestBaseSuite
 }
 
-func (suite *FeedTestSuite) SetupSuite() {
+func (suite *ContentSuggestionsTestSuite) SetupSuite() {
 	suite.SetupDatabase()
 }
 
-func (suite *FeedTestSuite) SetupTest() {
+func (suite *ContentSuggestionsTestSuite) SetupTest() {
 	userRepository := user.NewDatabaseRepository(suite.conn)
 	contentRepository := content.NewDatabaseRepository(suite.conn)
 
@@ -51,15 +51,15 @@ func (suite *FeedTestSuite) SetupTest() {
 	suite.MockUser(DefaultUserEmail, DefaultPassword)
 }
 
-func (suite *FeedTestSuite) TearDownTest() {
+func (suite *ContentSuggestionsTestSuite) TearDownTest() {
 	suite.ClearDatabase()
 }
 
-func (suite *FeedTestSuite) TearDownSuite() {
+func (suite *ContentSuggestionsTestSuite) TearDownSuite() {
 	suite.DestroyDatabase(context.Background())
 }
 
-func (suite *FeedTestSuite) mockContents() []*content.WriteDownOutput {
+func (suite *ContentSuggestionsTestSuite) mockContents() []*content.WriteDownOutput {
 	ctx := context.Background()
 	var output []*content.WriteDownOutput
 
@@ -93,11 +93,11 @@ func (suite *FeedTestSuite) mockContents() []*content.WriteDownOutput {
 	return output
 }
 
-func (suite *FeedTestSuite) TestGetFeed() {
+func (suite *ContentSuggestionsTestSuite) TestGetSuggestions() {
 	contents := suite.mockContents()
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, feedBaseUrl, nil)
+	req := httptest.NewRequest(http.MethodGet, contentSuggestionsBaseUrl, nil)
 	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
@@ -122,7 +122,7 @@ func (suite *FeedTestSuite) TestGetFeed() {
 	suite.Assert().Equal(contents[1].ID.String(), responseBody[0].ID)
 }
 
-func (suite *FeedTestSuite) TestFeedShouldNotIncludeRatedContents() {
+func (suite *ContentSuggestionsTestSuite) TestSuggestionsShouldNotIncludeRatedContents() {
 	contents := suite.mockContents()
 
 	input := &content.RateContentInput{
@@ -136,7 +136,7 @@ func (suite *FeedTestSuite) TestFeedShouldNotIncludeRatedContents() {
 	suite.Assert().Nil(err)
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, feedBaseUrl, nil)
+	req := httptest.NewRequest(http.MethodGet, contentSuggestionsBaseUrl, nil)
 	suite.MockToken(DefaultUserEmail, DefaultPassword, req)
 
 	suite.server.ServeHTTP(recorder, req)
@@ -150,6 +150,6 @@ func (suite *FeedTestSuite) TestFeedShouldNotIncludeRatedContents() {
 	suite.Assert().Equal(1, len(responseBody))
 }
 
-func TestFeedTestSuite(t *testing.T) {
-	suite.Run(t, new(FeedTestSuite))
+func TestContentSuggestionsTestSuite(t *testing.T) {
+	suite.Run(t, new(ContentSuggestionsTestSuite))
 }

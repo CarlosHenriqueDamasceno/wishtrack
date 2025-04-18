@@ -18,10 +18,10 @@ type output struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type FeedOutput []output
+type SuggestionsOutput []output
 
-func (service *service) Feed(ctx context.Context, id uuid.UUID, limit int) (*FeedOutput, error) {
-	contents, err := service.repository.Feed(ctx, id, limit)
+func (service *service) Suggestions(ctx context.Context, id uuid.UUID, limit int) (*SuggestionsOutput, error) {
+	contents, err := service.repository.Suggestions(ctx, id, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +29,8 @@ func (service *service) Feed(ctx context.Context, id uuid.UUID, limit int) (*Fee
 	return contentsToOutput(contents), nil
 }
 
-func contentsToOutput(contents []*Content) *FeedOutput {
-	var out FeedOutput
+func contentsToOutput(contents []*Content) *SuggestionsOutput {
+	var out SuggestionsOutput
 
 	for _, content := range contents {
 		o := output{

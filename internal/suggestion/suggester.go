@@ -19,7 +19,6 @@ type SuggesterType string
 
 const (
 	TMDB                       SuggesterType = "tmdb"
-	PERSONAL                   SuggesterType = "personal"
 	DefaultNumberOfSuggestions int           = 5
 )
 
@@ -45,8 +44,6 @@ func NewSuggester(
 	switch suggesterType {
 	case TMDB:
 		return NewTMDBSuggester(client, baseURL), nil
-	case PERSONAL:
-		return NewPersonalSuggester(repository), nil
 	default:
 		return nil, fmt.Errorf("unsupported suggester type: %s", suggesterType)
 	}

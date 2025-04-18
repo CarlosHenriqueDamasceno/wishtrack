@@ -109,7 +109,7 @@ func (r *DatabaseRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID, limit int) ([]*Content, error) {
+func (r *DatabaseRepository) Suggestions(ctx context.Context, userId uuid.UUID, limit int) ([]*Content, error) {
 	query := `
 		SELECT
 			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
@@ -125,7 +125,7 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID, limit i
 		return nil, database.ParseDatabaseError(err)
 	}
 
-	var feed []*Content
+	var suggestions []*Content
 
 	for rows.Next() {
 		content := &Content{}
@@ -146,10 +146,10 @@ func (r *DatabaseRepository) Feed(ctx context.Context, userId uuid.UUID, limit i
 		}
 
 		content.Genres = genres
-		feed = append(feed, content)
+		suggestions = append(suggestions, content)
 	}
 
-	return feed, nil
+	return suggestions, nil
 }
 
 func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, pagination query.PaginationInput, filters ContentListFilters) (data []*Content, total uint64, err error) {

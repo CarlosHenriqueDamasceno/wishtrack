@@ -55,17 +55,7 @@ func run(conf *server.Config, logger *slog.Logger) error {
 		logger.Error("Error creating TMDB suggester", "error", err)
 	}
 
-	personalSuggester, err := suggestion.NewSuggester(
-		suggestion.PERSONAL,
-		client,
-		conf.Providers.TMDB.BaseUrl,
-		contentRepository,
-	)
-	if err != nil {
-		logger.Error("Error creating TMDB suggester", "error", err)
-	}
-
-	suggesters := []suggestion.Suggester{tmdbSuggester, personalSuggester}
+	suggesters := []suggestion.Suggester{tmdbSuggester}
 	suggestionService := suggestion.NewService(suggesters)
 
 	api := server.NewApi(http.NewServeMux(), conf, logger, userService, contentService, suggestionService)

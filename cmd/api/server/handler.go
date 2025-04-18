@@ -100,26 +100,26 @@ func (api *Api) handleWriteDown(w http.ResponseWriter, r *http.Request) {
 	RespondJSON(out, http.StatusCreated, w)
 }
 
-// Feed godoc
+// Suggestions godoc
 //
 //	@Summary	Get suggestions for today
 //	@Tags		content
 //	@Accept		json
 //	@Produce	json
-//	@Success	200	{object}	content.FeedOutput	"Suggestions"
+//	@Success	200	{object}	content.SuggestionsOutput	"Suggestions"
 //	@Failure	401	{string}	string				"Unauthorized"
-//	@Router		/contents/feed [get]
+//	@Router		/contents/suggestions [get]
 //	@Security	ApiKeyAuth
-func (api *Api) handleFeed(w http.ResponseWriter, r *http.Request) {
+func (api *Api) handleContentSuggestions(w http.ResponseWriter, r *http.Request) {
 	user, err := api.GetLoggedUser(w, r)
 	if err != nil {
 		api.handleError(w, r, "invalid token", err)
 		return
 	}
 
-	out, err := api.contentService.Feed(r.Context(), user.ID, suggestion.DefaultNumberOfSuggestions)
+	out, err := api.contentService.Suggestions(r.Context(), user.ID, suggestion.DefaultNumberOfSuggestions)
 	if err != nil {
-		api.handleError(w, r, "error getting feed", err)
+		api.handleError(w, r, "error getting suggestions", err)
 		return
 	}
 

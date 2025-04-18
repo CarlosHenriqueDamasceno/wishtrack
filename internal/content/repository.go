@@ -11,7 +11,7 @@ type Repository interface {
 	Create(context.Context, *Content) error
 	Find(context.Context, uuid.UUID) (*Content, error)
 	List(context.Context, uuid.UUID, query.PaginationInput, ContentListFilters) (data []*Content, total uint64, err error)
-	Feed(context.Context, uuid.UUID, int) ([]*Content, error)
+	Suggestions(context.Context, uuid.UUID, int) ([]*Content, error)
 	Update(context.Context, *Content) error
 	Delete(context.Context, uuid.UUID) error
 }
