@@ -1,15 +1,32 @@
 <script setup lang="ts">
 import AddContent from '@/components/AddContent.vue'
 import ContentRow from '@/components/ContentRow.vue'
+import DeleteContent from '@/components/DeleteContent.vue'
 import RateContent from '@/components/RateContent.vue'
 import Topbar from '@/components/Topbar.vue'
 import httpClient from '@/http/client'
+import { categoriesMap } from '@/types/categories'
 import { useQuery } from '@tanstack/vue-query'
-import { ref } from 'vue'
 
 const { data: suggestions } = useQuery({
   queryKey: ['suggestions'],
-  queryFn: async () => (await httpClient.get('/suggestions')).data,
+  queryFn: async () => {
+    const data = (await httpClient.get('/suggestions')).data
+
+    return Object.values(data).map((el: any) => ({
+      ...el,
+      suggestions: el.suggestions.map((el: any) => {
+        const category = categoriesMap[el.category as keyof typeof categoriesMap]
+        if (!category) {
+          throw new Error(`Category ${el.category} not found`)
+        }
+        return {
+          ...el,
+          category: category,
+        }
+      }),
+    }))
+  },
 })
 
 const { data: lastInserted } = useQuery({
@@ -23,8 +40,6 @@ const { data: lastInserted } = useQuery({
       })
     ).data.data,
 })
-
-const isRatingModalVisible = ref(false)
 </script>
 
 <template>
@@ -33,6 +48,7 @@ const isRatingModalVisible = ref(false)
     <div class="flex justify-end px-6 my-4">
       <AddContent />
       <RateContent />
+      <DeleteContent />
     </div>
 
     <ContentRow

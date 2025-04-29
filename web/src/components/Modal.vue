@@ -36,7 +36,7 @@ function close(event: Event) {
             class="end-2.5 text-slate-400 bg-transparent cursor-pointer hover:bg-white/10 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
             :data-modal-toggle="id"
           >
-            <Cross class="w-3 h-3" />
+            <Cross class="w-10 h-10" />
             <span class="sr-only">Close modal</span>
           </button>
         </div>

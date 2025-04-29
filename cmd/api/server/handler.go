@@ -107,7 +107,7 @@ func (api *Api) handleWriteDown(w http.ResponseWriter, r *http.Request) {
 //	@Accept		json
 //	@Produce	json
 //	@Success	200	{object}	content.SuggestionsOutput	"Suggestions"
-//	@Failure	401	{string}	string				"Unauthorized"
+//	@Failure	401	{string}	string						"Unauthorized"
 //	@Router		/contents/suggestions [get]
 //	@Security	ApiKeyAuth
 func (api *Api) handleContentSuggestions(w http.ResponseWriter, r *http.Request) {

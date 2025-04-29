@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, watchEffect } from 'vue'
 import httpClient from '@/http/client'
 import Modal from './Modal.vue'
 import CustomButton from './CustomButton.vue'
 import Cross from './icons/Cross.vue'
+import { useModalStore } from '@/stores/modal'
+import { useQueryClient } from '@tanstack/vue-query'
 
 interface Input {
   name: string
@@ -17,20 +19,24 @@ interface Errors {
   [index: string]: string[]
 }
 
+const modalStore = useModalStore()
 const errors = ref<Errors>({})
-const isWriteDownModalVisible = ref(false)
 const writingGenre = ref<string>('')
 const writeDownInput: Input = reactive({
   name: '',
   category: '',
   summary: '',
-  wishLevel: '4',
+  wishLevel: '3',
   genres: [],
 })
 
-const toggleModal = () => {
-  isWriteDownModalVisible.value = !isWriteDownModalVisible.value
-}
+watchEffect(() => {
+  writeDownInput.name = modalStore.content?.name ?? ''
+  writeDownInput.category = modalStore.content?.category ?? ''
+  writeDownInput.summary = modalStore.content?.summary ?? ''
+  writeDownInput.wishLevel = '3'
+  writeDownInput.genres = modalStore.content?.genres ?? []
+})
 
 function addGenre() {
   if (writeDownInput.genres.find((el: string) => el === writingGenre.value)) {
@@ -44,6 +50,8 @@ function addGenre() {
 function removeGenre(genre: string) {
   writeDownInput.genres = writeDownInput.genres.filter((el: string) => el !== genre)
 }
+
+const queryClient = useQueryClient()
 
 async function writeDown() {
   httpClient
@@ -59,18 +67,19 @@ async function writeDown() {
       errors.value = error.response.errors
     })
     .then(function () {
-      toggleModal()
+      modalStore.toggleModal()
+      queryClient.invalidateQueries({ queryKey: ['lastInserted'] })
     })
 }
 </script>
 
 <template>
-  <CustomButton theme="default" @click="toggleModal()"> Anotar </CustomButton>
+  <CustomButton theme="default" @click="modalStore.toggleModal()"> Anotar </CustomButton>
   <Modal
     id="write-down-modal"
-    :show="isWriteDownModalVisible"
+    :show="modalStore.isVisible && modalStore.type === 'write-down'"
     :title="'Anotar novo conteúdo'"
-    @close="toggleModal()"
+    @close="modalStore.toggleModal()"
   >
     <div class="flex flex-col gap-2">
       <div class="flex gap-2 flex-col">
@@ -135,7 +144,7 @@ async function writeDown() {
               class="text-white cursor-pointer hover:bg-white/10 rounded-full p-2"
               @click="removeGenre(genre)"
             >
-              <Cross class="w-2.5 h-2.5" />
+              <Cross class="w-5 h-5" />
             </button>
           </span>
         </div>

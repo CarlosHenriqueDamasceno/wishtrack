@@ -155,7 +155,7 @@ func (r *DatabaseRepository) Suggestions(ctx context.Context, userId uuid.UUID, 
 func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, pagination query.PaginationInput, filters ContentListFilters) (data []*Content, total uint64, err error) {
 	query := `
 		SELECT
-			id, name, category, genres, summary, wish_level, user_id, created_at, updated_at
+			id, name, category, genres, summary, wish_level, rate, comment, user_id, created_at, updated_at
 		FROM contents
 		WHERE user_id = $1
 		AND (category ILIKE '%' || $2 || '%' OR name ILIKE '%' || $2 || '%' OR summary ILIKE '%' || $2 || '%' OR $2 IS NULL)
@@ -202,6 +202,8 @@ func (r *DatabaseRepository) List(ctx context.Context, userId uuid.UUID, paginat
 			pq.Array(&genres),
 			&content.Summary,
 			&content.WishLevel,
+			&content.Rate,
+			&content.Comment,
 			&content.UserID,
 			&content.CreatedAt,
 			&content.UpdatedAt,

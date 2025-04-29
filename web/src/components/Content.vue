@@ -3,6 +3,12 @@ import { useRatingStore } from '@/stores/rating'
 import type Content from '@/types/content'
 import { Status, statusName } from '@/types/status'
 import { computed, defineProps } from 'vue'
+import Plus from './icons/Plus.vue'
+import StarOutline from './icons/StarOutline.vue'
+import Star from './icons/Star.vue'
+import { useDeletingStore } from '@/stores/delete'
+import { useWriteDownStore } from '@/stores/writedown'
+import { useModalStore } from '@/stores/modal'
 
 const props = defineProps<{
   content: Content
@@ -12,18 +18,27 @@ const status = computed(() => {
   if (undefined === props.content.id) {
     return Status.UNSAVED
   }
-  if (undefined === props.content.rate) {
+  if (null === props.content.rate) {
     return Status.SAVED
   }
 
   return Status.RATED
 })
 
-const store = useRatingStore()
+const modalStore = useModalStore()
 
 function handleClick() {
-  store.content = props.content
-  store.toggleModal(true)
+  modalStore.content = props.content
+
+  if (status.value === Status.UNSAVED) {
+    modalStore.type = 'write-down'
+  }
+
+  if (status.value === Status.SAVED || status.value === Status.RATED) {
+    modalStore.type = 'rating'
+  }
+
+  modalStore.toggleModal()
 }
 </script>
 <template>
@@ -32,9 +47,16 @@ function handleClick() {
     class="cursor-pointer min-w-[250px] aspect-[16/9] bg-zinc-900 rounded-2xl border border-zinc-800 shadow-md p-4 flex flex-col justify-between hover:scale-105 transition-transform"
   >
     <div>
-      <div class="mb-0.5 rounded-sm text-white/50 text-xs">
+      <div class="mb-0.5 rounded-sm text-white/50 text-xs flex justify-between">
         {{ props.content.category }}
-        {{ statusName[status] }}
+        <button
+          type="button"
+          class="p-2 end-2.5 text-slate-400 cursor-pointer bg-white/10 rounded-full text-sm ms-auto inline-flex justify-center items-center"
+        >
+          <Plus v-if="status === Status.UNSAVED" class="w-4 h-4" />
+          <StarOutline v-if="status === Status.SAVED" class="w-4 h-4" />
+          <Star v-if="status === Status.RATED" class="w-4 h-4" />
+        </button>
       </div>
       <h3 class="text-lg font-semibold text-white mb-2">{{ props.content.name }}</h3>
       <p class="text-sm text-zinc-400 mb-3 truncate-lines-3">

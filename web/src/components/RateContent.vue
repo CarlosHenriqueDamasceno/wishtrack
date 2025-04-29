@@ -1,20 +1,25 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, watchEffect } from 'vue'
 import Modal from './Modal.vue'
 import CustomButton from './CustomButton.vue'
-import { useRatingStore } from '@/stores/rating'
 import httpClient from '@/http/client'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import { useModalStore } from '@/stores/modal'
 
 interface RateInput {
   rate: string
   comment: string
 }
 
-const store = useRatingStore()
+const store = useModalStore()
 const rateInput: RateInput = reactive({
   rate: '3',
   comment: '',
+})
+
+watchEffect(() => {
+  rateInput.rate = store.content?.rate?.toString() ?? '3'
+  rateInput.comment = store.content?.comment ?? ''
 })
 
 const queryClient = useQueryClient()
@@ -35,15 +40,19 @@ const { mutate: saveRating, isPending } = useMutation({
       })
   },
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['suggestions'] })
+    queryClient.invalidateQueries({ queryKey: ['lastInserted'] })
   },
 })
+
+function handleDeleteClick() {
+  store.type = 'delete'
+}
 </script>
 
 <template>
   <Modal
-    id="write-down-modal"
-    :show="store.isModalVisible"
+    id="rate-modal"
+    :show="store.isVisible && store.type === 'rating'"
     :title="'Avaliar conteúdo'"
     @close="store.toggleModal()"
   >
@@ -65,7 +74,7 @@ const { mutate: saveRating, isPending } = useMutation({
     </div>
     <template #footer>
       <div class="flex justify-between">
-        <CustomButton theme="danger" @click="">Remover</CustomButton>
+        <CustomButton theme="danger" @click="handleDeleteClick">Remover</CustomButton>
         <CustomButton theme="default" @click="saveRating" :disabled="isPending"
           >Avaliar</CustomButton
         >

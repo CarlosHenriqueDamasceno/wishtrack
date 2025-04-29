@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import ContentCard from '@/components/Content.vue'
-import type Content from '@/types/content'
+import type Provider from '@/types/provider'
 import { defineProps } from 'vue'
-
-interface Provider {
-  provider: string
-  suggestions: Content[]
-}
 
 const props = defineProps<{
   provider: Provider

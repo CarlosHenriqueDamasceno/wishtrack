@@ -6,9 +6,7 @@
       stroke-linecap="round"
       stroke-linejoin="round"
       stroke-width="2"
-      d="M 12 6 L 12 12 M 12 12 L 12 18 M 12 12 L 18 12 M 12 12 L 6 12"
-      style="transform-box: fill-box; transform-origin: 50% 50%"
-      transform="matrix(-0.707107, 0.707107, -0.707107, -0.707107, 0, -0.000001)"
+      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
     ></path>
   </svg>
 </template>
