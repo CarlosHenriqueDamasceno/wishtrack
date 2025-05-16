@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { useRatingStore } from '@/stores/rating'
 import type Content from '@/types/content'
-import { Status, statusName } from '@/types/status'
+import { Status } from '@/types/status'
 import { computed, defineProps } from 'vue'
 import Plus from './icons/Plus.vue'
 import StarOutline from './icons/StarOutline.vue'
 import Star from './icons/Star.vue'
-import { useDeletingStore } from '@/stores/delete'
-import { useWriteDownStore } from '@/stores/writedown'
 import { useModalStore } from '@/stores/modal'
 
 const props = defineProps<{

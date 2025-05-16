@@ -32,7 +32,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('../views/IAHomeView.vue'),
+      component: () => import('../views/HomeView.vue'),
     },
     {
       path: '/login',
